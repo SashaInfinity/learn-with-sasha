@@ -1,19 +1,20 @@
-import React, { useEffect, useRef } from 'react';
-import { Theme } from '../types';
+import { useEffect, useRef } from 'react';
 
-interface AnimatedBackgroundProps {
-    theme: Theme;
-}
-
-const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ theme }) => {
+// Decorative full-screen particle network. The previous `theme` prop was
+// vestigial (the app has a single static "solar-flare" theme) and is removed.
+const AnimatedBackground = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
+        // Bind to a non-null const so the narrowing holds inside the nested
+        // class methods below (TS doesn't carry narrowing into class closures).
+        const canvasEl: HTMLCanvasElement = canvas;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvasEl.getContext('2d');
         if (!ctx) return;
+        const ctx2d: CanvasRenderingContext2D = ctx;
 
         let animationFrameId: number;
         let particles: Particle[] = [];
@@ -27,8 +28,8 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ theme }) => {
         const mouseLineRgb = computedStyles.getPropertyValue('--color-mouse-line-rgb').trim();
 
         const resizeCanvas = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvasEl.width = window.innerWidth;
+            canvasEl.height = window.innerHeight;
             initParticles();
         };
 
@@ -40,27 +41,25 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ theme }) => {
             speedY: number;
 
             constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
+                this.x = Math.random() * canvasEl.width;
+                this.y = Math.random() * canvasEl.height;
                 this.size = Math.random() * 2 + 1;
                 this.speedX = (Math.random() * 2 - 1) * 0.3;
                 this.speedY = (Math.random() * 2 - 1) * 0.3;
             }
 
             update() {
-                if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
-                if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+                if (this.x > canvasEl.width || this.x < 0) this.speedX *= -1;
+                if (this.y > canvasEl.height || this.y < 0) this.speedY *= -1;
                 this.x += this.speedX;
                 this.y += this.speedY;
             }
 
             draw() {
-                if (ctx) {
-                    ctx.fillStyle = particleColor;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+                ctx2d.fillStyle = particleColor;
+                ctx2d.beginPath();
+                ctx2d.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx2d.fill();
             }
         }
 
@@ -83,12 +82,12 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ theme }) => {
                 const dyMouse = particles[a].y - mouse.y;
                 const distanceMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
                 if (distanceMouse < mouse.radius) {
-                    ctx.strokeStyle = `rgba(${mouseLineRgb}, ${1 - distanceMouse / mouse.radius})`;
-                    ctx.lineWidth = 0.5;
-                    ctx.beginPath();
-                    ctx.moveTo(particles[a].x, particles[a].y);
-                    ctx.lineTo(mouse.x, mouse.y);
-                    ctx.stroke();
+                    ctx2d.strokeStyle = `rgba(${mouseLineRgb}, ${1 - distanceMouse / mouse.radius})`;
+                    ctx2d.lineWidth = 0.5;
+                    ctx2d.beginPath();
+                    ctx2d.moveTo(particles[a].x, particles[a].y);
+                    ctx2d.lineTo(mouse.x, mouse.y);
+                    ctx2d.stroke();
                 }
 
                 // Connect to other particles
@@ -98,19 +97,19 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ theme }) => {
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
                     if (distance < 120) {
-                        ctx.strokeStyle = `rgba(${lineRgb}, ${1 - distance / 120})`;
-                        ctx.lineWidth = 0.3;
-                        ctx.beginPath();
-                        ctx.moveTo(particles[a].x, particles[a].y);
-                        ctx.lineTo(particles[b].x, particles[b].y);
-                        ctx.stroke();
+                        ctx2d.strokeStyle = `rgba(${lineRgb}, ${1 - distance / 120})`;
+                        ctx2d.lineWidth = 0.3;
+                        ctx2d.beginPath();
+                        ctx2d.moveTo(particles[a].x, particles[a].y);
+                        ctx2d.lineTo(particles[b].x, particles[b].y);
+                        ctx2d.stroke();
                     }
                 }
             }
         };
 
         const animate = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx2d.clearRect(0, 0, canvasEl.width, canvasEl.height);
             particles.forEach(p => {
                 p.update();
                 p.draw();
@@ -129,9 +128,16 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ theme }) => {
             window.removeEventListener('mousemove', handleMouseMove);
             cancelAnimationFrame(animationFrameId);
         };
-    }, [theme]); // Rerun effect when theme changes
+    }, []); // Static theme — colors come from CSS variables that don't change.
 
-    return <canvas ref={canvasRef} id="particle-canvas" />;
+    return (
+        <canvas
+            ref={canvasRef}
+            id="particle-canvas"
+            aria-hidden="true"
+            role="presentation"
+        />
+    );
 };
 
 export default AnimatedBackground;

@@ -34,7 +34,3 @@ export interface LessonContent {
   visualIdea: string;
   keyPoints: string[];
 }
-
-export enum Theme {
-  SOLAR_FLARE = 'solar-flare',
-}

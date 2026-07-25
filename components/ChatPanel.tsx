@@ -9,7 +9,7 @@ interface ChatPanelProps {
     onSimplify: (text: string) => void;
     isSashaThinking: boolean;
     liveUserInput: string;
-    endOfMessagesRef: React.RefObject<HTMLDivElement>;
+    endOfMessagesRef: React.RefObject<HTMLDivElement | null>;
     isRecording: boolean;
     handleVoiceInteraction: () => void;
     currentInput: string;

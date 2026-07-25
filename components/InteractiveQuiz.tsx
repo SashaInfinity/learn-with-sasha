@@ -72,7 +72,7 @@ const InteractiveQuiz: React.FC<InteractiveQuizProps> = ({ questions }) => {
             
             <div className="space-y-3">
                 {currentQuestion.options.map((option, index) => {
-                    let style: React.CSSProperties = {
+                    const style: React.CSSProperties = {
                         transition: 'all 0.2s ease-in-out',
                     };
                     

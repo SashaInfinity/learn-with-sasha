@@ -8,7 +8,7 @@ const loadingMessages = [
     "Almost there..."
 ];
 
-const LoadingSpinner: React.FC<{}> = () => {
+const LoadingSpinner: React.FC = () => {
     const [messageIndex, setMessageIndex] = useState(0);
 
     useEffect(() => {

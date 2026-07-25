@@ -1,16 +1,13 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-// FIX: Removed LiveSession as it is not an exported member from @google/genai.
-import { GoogleGenAI, Chat, Modality, LiveServerMessage, Blob } from '@google/genai';
-import { Message, Role, LearningState, FileData, QuizQuestion, LessonContent, Theme } from './types';
-import { MicIcon, StopIcon, SendIcon, BookOpenIcon, SparklesIcon } from './components/IconComponents';
+import { GoogleGenAI, Chat, Modality, LiveServerMessage, type Blob } from '@google/genai';
+import { Message, Role, LearningState, FileData, QuizQuestion, LessonContent } from './types';
+import { BookOpenIcon } from './components/IconComponents';
 import LoadingSpinner from './components/LoadingSpinner';
-import InteractiveQuiz from './components/InteractiveQuiz';
 import AnimatedBackground from './components/AnimatedBackground';
 import AnimatedTitle from './components/AnimatedTitle';
 import LandingPage from './components/LandingPage';
 import MultiStepSetup from './components/MultiStepSetup';
 import LearningDashboard from './components/LearningDashboard';
-import Modal from './components/Modal';
 import ChatPanel from './components/ChatPanel';
 import StoryModal from './components/StoryModal';
 
@@ -138,8 +135,6 @@ export default function App() {
     const [error, setError] = useState<string | null>(null);
     const [quizData, setQuizData] = useState<QuizQuestion[] | null>(null);
     const [lessonContent, setLessonContent] = useState<LessonContent | null>(null);
-    // const [lessonImage, setLessonImage] = useState<string | undefined>(undefined);
-    const [theme, setTheme] = useState<Theme>(Theme.SOLAR_FLARE);
     const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 
     const [isRecording, setIsRecording] = useState(false);
@@ -226,8 +221,8 @@ Target Language: ${lang}`;
                 //  }),
             ]);
 
-            const responseText = lessonResponse.text;
-            
+            const responseText = lessonResponse.text ?? '';
+
             const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
             const jsonMatch = responseText.match(jsonRegex);
             const textWithoutJson = responseText.replace(jsonRegex, '').trim();
@@ -279,7 +274,7 @@ Target Language: ${lang}`;
 
         try {
             const response = await chatRef.current.sendMessage({ message: text });
-            const modelMessage: Message = { role: Role.MODEL, text: response.text };
+            const modelMessage: Message = { role: Role.MODEL, text: response.text ?? '' };
             setMessages(prev => [...prev, modelMessage]);
 
         } catch (e: any) {
@@ -305,7 +300,7 @@ Target Language: ${lang}`;
                 contents: `Explain the following text in very simple terms, as if you were talking to a 10-year-old. Text: "${textToSimplify}"`,
             });
 
-            const modelMessage: Message = { role: Role.MODEL, text: response.text };
+            const modelMessage: Message = { role: Role.MODEL, text: response.text ?? '' };
             setMessages(prev => [...prev, modelMessage]);
 
         } catch (e: any) {
@@ -395,13 +390,15 @@ Target Language: ${lang}`;
                                 setLiveUserInput('');
                             }
                            
-                            const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData.data;
+                            const firstPart = message.serverContent?.modelTurn?.parts?.[0];
+                            const base64Audio = firstPart?.inlineData?.data;
                             if (base64Audio && outputAudioContextRef.current) {
                                 if (message.serverContent?.inputTranscription) { // AI is responding, clear the live input
                                     setLiveUserInput('');
                                 }
-                                if (message.serverContent?.modelTurn?.parts[0]?.text) {
-                                     setMessages(prev => [...prev, {role: Role.MODEL, text: message.serverContent!.modelTurn!.parts[0]!.text!}]);
+                                const partText = firstPart?.text;
+                                if (partText) {
+                                     setMessages(prev => [...prev, {role: Role.MODEL, text: partText}]);
                                 }
 
                                 const outputCtx = outputAudioContextRef.current;
@@ -516,7 +513,7 @@ Target Language: ${lang}`;
 
     return (
         <main>
-            <AnimatedBackground theme={theme} />
+            <AnimatedBackground />
             {renderContent()}
         </main>
     );

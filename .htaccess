@@ -1,0 +1,79 @@
+# ===========================================================================
+# Learn With Sasha — Apache config
+# ===========================================================================
+
+# --- SPA history fallback ------------------------------------------------
+# Serve index.html for any path that isn't an existing file/dir, so deep
+# links into the SPA don't 404. Exception: never rewrite the Let's Encrypt
+# ACME challenge path (used for TLS issuance/renewal).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Allow certbot / Let's Encrypt HTTP-01 challenges to resolve as-is.
+    RewriteRule ^\.well-known/acme-challenge/ - [L]
+
+    # Force HTTPS (do this after the ACME exception; HTTP-01 must work on :80).
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # SPA fallback: anything that isn't a real file or directory -> index.html.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# Fallback if mod_rewrite is unavailable (only the SPA part).
+<IfModule !mod_rewrite.c>
+    ErrorDocument 404 /index.html
+</IfModule>
+
+# --- HSTS (only meaningful once HTTPS is forced & stable) ----------------
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+    # --- Security headers -------------------------------------------------
+    # X-Content-Type-Options: stop MIME sniffing.
+    Header always set X-Content-Type-Options "nosniff"
+    # X-Frame-Options: prevent clickjacking (the app is not meant to be framed).
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # Referrer-Policy: send origin only.
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # Permissions-Policy: lock down unused browser features.
+    Header always set Permissions-Policy "camera=(), geolocation=(), microphone=(self)"
+
+    # --- Content-Security-Policy -----------------------------------------
+    # The client currently loads Tailwind from a CDN script and Google Fonts.
+    # Once Tailwind is bundled at build time (Phase 2), 'cdn.tailwindcss.com'
+    # and the unsafe-inline will be tightened.
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://generativelanguage.googleapis.com; media-src 'self' data: blob:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+</IfModule>
+
+# --- Protect dotfiles and env files --------------------------------------
+# Matches filenames starting with a dot (e.g. .env, .git) or with .env/.local
+# extension. NOTE: Let's Encrypt ACME challenge files live at
+# .well-known/acme-challenge/<TOKEN> and have no extension + no leading dot
+# in their basename, so they are NOT caught by this rule and remain served.
+<FilesMatch "(^\.|\.(env|local))">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# --- Long-cache fingerprinted build assets -------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+<IfModule mod_headers.c>
+    <FilesMatch "\.(js|css)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>

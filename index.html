@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learn With Sasha: Personalized Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Rajdhani', sans-serif;
+        background-color: var(--color-background);
+        color: var(--color-text-primary);
+        overflow: hidden; /* Hide scrollbars caused by canvas */
+        transition: background-color 0.5s ease;
+      }
+      #root {
+        position: relative;
+        z-index: 1;
+        height: 100vh;
+        width: 100vw;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      #particle-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 0;
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes subtleZoom {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+      }
+      .animate-fadeInUp { animation: fadeInUp 0.6s ease-out forwards; }
+      .animate-subtleZoom { animation: subtleZoom 8s ease-in-out infinite; }
+      .animate-float { animation: float 6s ease-in-out infinite; }
+      
+      @keyframes pulsate {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+        70% { transform: scale(1.1); box-shadow: 0 0 10px 20px rgba(220, 38, 38, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+      }
+      .animate-pulsate {
+        animation: pulsate 2s infinite ease-out;
+      }
+      
+      .themed-title {
+        color: var(--color-text-accent);
+        text-shadow: 0 0 10px var(--color-primary-glow), 0 0 20px var(--color-primary-glow);
+        transition: text-shadow 0.3s ease-in-out;
+      }
+      .themed-title:hover {
+        text-shadow: 0 0 15px var(--color-primary-glow), 0 0 30px var(--color-accent);
+      }
+
+      /* --- GRID LOADER --- */
+      .grid-loader {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        width: 90px;
+        height: 90px;
+      }
+      .grid-loader > div {
+        width: 100%;
+        height: 100%;
+        background-color: var(--color-accent);
+        border-radius: 50%;
+        animation: grid-pulse 1.4s infinite ease-in-out;
+      }
+      @keyframes grid-pulse {
+        0%, 100% { transform: scale(0.5); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 1; }
+      }
+      .grid-loader > div:nth-child(1) { animation-delay: 0.0s; }
+      .grid-loader > div:nth-child(2) { animation-delay: 0.1s; }
+      .grid-loader > div:nth-child(3) { animation-delay: 0.2s; }
+      .grid-loader > div:nth-child(4) { animation-delay: 0.1s; }
+      .grid-loader > div:nth-child(5) { animation-delay: 0.2s; }
+      .grid-loader > div:nth-child(6) { animation-delay: 0.3s; }
+      .grid-loader > div:nth-child(7) { animation-delay: 0.2s; }
+      .grid-loader > div:nth-child(8) { animation-delay: 0.3s; }
+      .grid-loader > div:nth-child(9) { animation-delay: 0.4s; }
+      /* --- END GRID LOADER --- */
+
+      /* --- THINKING INDICATOR --- */
+      .thinking-dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--color-text-accent);
+        border-radius: 50%;
+        animation: thinking-bounce 1.4s infinite ease-in-out both;
+      }
+      @keyframes thinking-bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+      }
+      /* --- END THINKING INDICATOR --- */
+
+
+      /* --- THEME SYSTEM --- */
+      :root {
+        --color-background: #111827; /* gray-900 */
+        --color-text-primary: #f9fafb; /* gray-50 */
+        --color-text-accent: #fb923c; /* orange-400 */
+        --color-text-accent-hover: #fdba74; /* orange-300 */
+        --color-primary: #f97316; /* orange-500 */
+        --color-primary-hover: #ea580c; /* orange-600 */
+        --color-primary-glow: rgba(249, 115, 22, 0.4);
+        --color-accent: #fb923c; /* orange-400 */
+        --color-border-themed: rgba(251, 146, 60, 0.3);
+        --color-border-surface: rgba(249, 250, 251, 0.2);
+        --color-user-message-bg: #374151; /* gray-700 */
+        --color-success: #22c55e;
+        --color-success-rgb: 34, 197, 94;
+        --color-danger: #ef4444;
+        --color-danger-rgb: 239, 68, 68;
+        --color-danger-hover: #dc2626;
+        /* for canvas */
+        --color-particle: #f97316; /* orange-500 */
+        --color-line-rgb: 249, 115, 22;
+        --color-mouse-line-rgb: 251, 146, 60;
+      }
+
+      @keyframes pulseGlowThemed {
+        0%, 100% { box-shadow: 0 0 20px var(--color-primary-glow); }
+        50% { box-shadow: 0 0 35px var(--color-primary); }
+      }
+      .animate-pulseGlowThemed { animation: pulseGlowThemed 4s ease-in-out infinite alternate; }
+
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <canvas id="particle-canvas"></canvas>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

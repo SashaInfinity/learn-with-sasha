@@ -1,0 +1,7 @@
+{
+  "name": "Learn With Sasha",
+  "description": "An intelligent platform that teaches mathematical concepts tailored to your unique interests and learning style, featuring AI-generated explanations, illustrations, and real-time voice interaction with Sasha.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

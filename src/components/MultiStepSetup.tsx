@@ -24,15 +24,28 @@ const ProgressBar: React.FC<{ step: number; totalSteps: number }> = ({ step, tot
     );
 };
 
-const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-    <input
-        {...props}
-        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white text-lg transition-all duration-300 focus:scale-[1.03] focus:outline-none"
-        style={{ '--tw-shadow': '0 0 20px var(--color-primary-glow)', '--tw-shadow-color': 'var(--color-primary-glow)', borderColor: 'var(--color-gray-600)' } as React.CSSProperties}
-        onFocus={(e) => { e.target.style.borderColor = 'var(--color-accent)'; e.target.style.boxShadow = 'var(--tw-shadow)'; }}
-        onBlur={(e) => { e.target.style.borderColor = 'var(--color-gray-600)'; e.target.style.boxShadow = 'none'; }}
-    />
-);
+const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => {
+    // Chain caller-supplied onFocus/onBlur with our visual styling so neither
+    // silently drops the other (previously the caller's handlers were ignored).
+    const { onFocus, onBlur, ...rest } = props;
+    return (
+        <input
+            {...rest}
+            className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white text-lg transition-all duration-300 focus:scale-[1.03] focus:outline-none"
+            style={{ '--tw-shadow': '0 0 20px var(--color-primary-glow)', '--tw-shadow-color': 'var(--color-primary-glow)', borderColor: 'var(--color-gray-600)' } as React.CSSProperties}
+            onFocus={(e) => {
+                e.target.style.borderColor = 'var(--color-accent)';
+                e.target.style.boxShadow = 'var(--tw-shadow)';
+                onFocus?.(e);
+            }}
+            onBlur={(e) => {
+                e.target.style.borderColor = 'var(--color-gray-600)';
+                e.target.style.boxShadow = 'none';
+                onBlur?.(e);
+            }}
+        />
+    );
+};
 
 const MultiStepSetup: React.FC<MultiStepSetupProps> = ({ onStart, initialName }) => {
     const { user } = useAuth();

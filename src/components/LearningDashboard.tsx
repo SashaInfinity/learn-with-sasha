@@ -2,42 +2,7 @@ import React from 'react';
 import { LessonContent, QuizQuestion } from '../types';
 import { MagicWandIcon } from './IconComponents';
 import InteractiveQuiz from './InteractiveQuiz';
-
-const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
-    const parseMarkdown = (text: string): string => {
-        let html = '';
-        const lines = text.split('\n');
-        let inList = false;
-
-        lines.forEach(line => {
-            let safeLine = line.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            safeLine = safeLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            safeLine = safeLine.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            
-            if (/^\s*[-*•]\s/.test(safeLine)) {
-                if (!inList) {
-                    html += '<ul class="list-disc list-inside my-2 space-y-1">';
-                    inList = true;
-                }
-                html += `<li>${safeLine.replace(/^\s*[-*•]\s/, '')}</li>`;
-            } else {
-                if (inList) {
-                    html += '</ul>';
-                    inList = false;
-                }
-                if (safeLine.trim()) {
-                    html += `<p>${safeLine}</p>`;
-                }
-            }
-        });
-
-        if (inList) {
-            html += '</ul>';
-        }
-        return html;
-    };
-    return <div className="space-y-2" dangerouslySetInnerHTML={{ __html: parseMarkdown(content) }} />;
-};
+import { Markdown } from '../lib/markdown';
 
 interface DashboardCardProps {
     title: string;
@@ -70,16 +35,16 @@ const LearningDashboard: React.FC<LearningDashboardProps> = ({ content, quizData
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <DashboardCard title="Concept Overview" className="animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
-                <MarkdownRenderer content={content.overview} />
+                <Markdown content={content.overview} className="space-y-2" />
             </DashboardCard>
             <DashboardCard title="Personalized Explanation" className="animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
-                <MarkdownRenderer content={content.explanation} />
+                <Markdown content={content.explanation} className="space-y-2" />
             </DashboardCard>
             <DashboardCard title="Key Points" className="animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
                  <ul className="space-y-2">
-                    {content.keyPoints.map((point, index) => 
-                        <li key={index} className="flex items-start">
-                            <span className="text-orange-400 mr-3 mt-1">&#10148;</span>
+                    {content.keyPoints.map((point, index) =>
+                        <li key={`${index}-${point.slice(0, 20)}`} className="flex items-start">
+                            <span className="text-orange-400 mr-3 mt-1" aria-hidden="true">&#10148;</span>
                             <span>{point}</span>
                         </li>
                     )}

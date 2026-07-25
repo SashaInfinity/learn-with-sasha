@@ -12,6 +12,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Role } from '../types';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { Markdown } from '../lib/markdown';
 import { UploadIcon, SendIcon, SparklesIcon, BookOpenIcon } from './IconComponents';
 import ThinkingIndicator from './ThinkingIndicator';
 
@@ -24,36 +25,6 @@ interface SolverMessage {
   image?: string; // data URL for display
   finalAnswer?: string;
 }
-
-const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
-  // Lightweight, safe-ish markdown: escape then re-apply bold/italic/lists.
-  // (Phase 5 will replace this with a shared DOMPurify-backed renderer.)
-  const toHtml = (text: string): string => {
-    let html = '';
-    let inList = false;
-    for (const rawLine of text.split('\n')) {
-      let line = rawLine.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      line = line.replace(/\*(.*?)\*/g, '<em>$1</em>');
-      if (/^\s*[-*•]\s/.test(line)) {
-        if (!inList) {
-          html += '<ul class="list-disc list-inside my-2 space-y-1">';
-          inList = true;
-        }
-        html += `<li>${line.replace(/^\s*[-*•]\s/, '')}</li>`;
-      } else {
-        if (inList) {
-          html += '</ul>';
-          inList = false;
-        }
-        if (line.trim()) html += `<p>${line}</p>`;
-      }
-    }
-    if (inList) html += '</ul>';
-    return html;
-  };
-  return <div dangerouslySetInnerHTML={{ __html: toHtml(content) }} />;
-};
 
 export default function MathSolver() {
   const { user } = useAuth();
@@ -212,7 +183,7 @@ export default function MathSolver() {
               {m.role === Role.USER ? (
                 <p className="whitespace-pre-wrap">{m.text}</p>
               ) : (
-                <MarkdownRenderer content={m.text} />
+                <Markdown content={m.text} />
               )}
               {m.finalAnswer && (
                 <div

@@ -1,51 +1,7 @@
 import React from 'react';
 import { Message, Role } from '../types';
 import { SparklesIcon, MagicWandIcon } from './IconComponents';
-
-// This component parses simple markdown and renders it as HTML.
-const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
-    const parseMarkdown = (text: string): string => {
-        let html = '';
-        const lines = text.split('\n');
-        let inList = false;
-
-        lines.forEach(line => {
-            // Basic security: escape HTML tags.
-            let safeLine = line.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            
-            // **bold** -> <strong>bold</strong>
-            safeLine = safeLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            // *italic* -> <em>italic</em>
-            safeLine = safeLine.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            
-            // Handle unordered lists (*, -, •)
-            if (/^\s*[-*•]\s/.test(safeLine)) {
-                if (!inList) {
-                    html += '<ul class="list-disc list-inside my-2 space-y-1">';
-                    inList = true;
-                }
-                html += `<li>${safeLine.replace(/^\s*[-*•]\s/, '')}</li>`;
-            } else {
-                if (inList) {
-                    html += '</ul>';
-                    inList = false;
-                }
-                if (safeLine.trim()) {
-                    html += `<p>${safeLine}</p>`;
-                }
-            }
-        });
-
-        if (inList) {
-            html += '</ul>';
-        }
-
-        return html;
-    };
-
-    return <div dangerouslySetInnerHTML={{ __html: parseMarkdown(content) }} />;
-};
-
+import { Markdown } from '../lib/markdown';
 
 interface ChatMessageProps {
     message: Message;
@@ -66,7 +22,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSimplify }) => {
                 {isUser ? (
                      <p className="whitespace-pre-wrap">{message.text}</p>
                 ) : (
-                    <MarkdownRenderer content={message.text} />
+                    <Markdown content={message.text} />
                 )}
                 {message.image && (
                      <div className="mt-4">

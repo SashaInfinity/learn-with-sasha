@@ -15,6 +15,7 @@
     "check": "npm run typecheck && npm run lint && npm run format:check"
   },
   "dependencies": {
+    "dompurify": "^3.4.12",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

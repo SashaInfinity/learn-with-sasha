@@ -34,7 +34,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             <h3 className="text-2xl font-bold text-white mb-4 text-center themed-title">Questions for Sasha?</h3>
             <div className="flex-grow overflow-y-auto pr-2 mb-4">
                 {messages.map((msg, index) => (
-                    <ChatMessage key={index} message={msg} onSimplify={onSimplify} />
+                    <ChatMessage
+                        key={`${index}-${msg.role}-${msg.text.slice(0, 12)}`}
+                        message={msg}
+                        onSimplify={onSimplify}
+                    />
                 ))}
                 {liveUserInput && (
                     <div className="flex items-start gap-4 my-4 justify-end opacity-70">

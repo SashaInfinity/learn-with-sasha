@@ -1,10 +1,13 @@
-import React, { useState, useRef } from 'react';
-import { FileData } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { FileData, Preferences } from '../types';
+import { api } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 import { UploadIcon, SparklesIcon } from './IconComponents';
 import AnimatedTitle from './AnimatedTitle';
 
 interface MultiStepSetupProps {
     onStart: (name: string, interests: string, topic: string, file: FileData | null, lang: string) => void;
+    initialName?: string;
 }
 
 const ProgressBar: React.FC<{ step: number; totalSteps: number }> = ({ step, totalSteps }) => {
@@ -31,14 +34,39 @@ const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props)
     />
 );
 
-const MultiStepSetup: React.FC<MultiStepSetupProps> = ({ onStart }) => {
+const MultiStepSetup: React.FC<MultiStepSetupProps> = ({ onStart, initialName }) => {
+    const { user } = useAuth();
     const [step, setStep] = useState(1);
-    const [name, setName] = useState('');
+    const [name, setName] = useState(initialName ?? user?.display_name ?? '');
     const [topic, setTopic] = useState('');
     const [interests, setInterests] = useState('');
     const [language, setLanguage] = useState('English');
     const [file, setFile] = useState<FileData | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Pre-fill interests/language from saved preferences (returning students).
+    useEffect(() => {
+        let cancelled = false;
+        api.getPreferences()
+            .then(({ preferences }: { preferences: Preferences | null }) => {
+                if (cancelled || !preferences) return;
+                // Only pre-fill interests if the user hasn't typed anything yet.
+                setInterests((prev) =>
+                    prev
+                        ? prev
+                        : Array.isArray(preferences.interests) && preferences.interests.length
+                          ? preferences.interests.join(', ')
+                          : '',
+                );
+                if (preferences.language) setLanguage(preferences.language);
+            })
+            .catch(() => {
+                /* not logged in or no prefs yet — fine */
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files?.[0];

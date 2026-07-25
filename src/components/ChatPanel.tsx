@@ -32,7 +32,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     return (
         <div className="h-full flex flex-col bg-gray-900/50 backdrop-blur-sm rounded-2xl p-4 border" style={{ borderColor: 'var(--color-border-surface)' }}>
             <h3 className="text-2xl font-bold text-white mb-4 text-center themed-title">Questions for Sasha?</h3>
-            <div className="flex-grow overflow-y-auto pr-2 mb-4">
+            <div className="flex-grow overflow-y-auto pr-2 mb-4" role="log" aria-live="polite" aria-label="Conversation with Sasha">
                 {messages.map((msg, index) => (
                     <ChatMessage
                         key={`${index}-${msg.role}-${msg.text.slice(0, 12)}`}
@@ -51,11 +51,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                 <div ref={endOfMessagesRef} />
             </div>
             <div className="mt-auto flex items-center gap-2">
-                <button onClick={handleVoiceInteraction} className="p-3 rounded-full transition-colors duration-200 flex-shrink-0" style={{ backgroundColor: isRecording ? 'var(--color-danger-hover)' : 'var(--color-primary)' }}>
-                    {isRecording ? <StopIcon className={`w-6 h-6 text-white`} /> : <MicIcon className="w-6 h-6 text-white" />}
+                <button
+                    onClick={handleVoiceInteraction}
+                    aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
+                    aria-pressed={isRecording}
+                    className="p-3 rounded-full transition-colors duration-200 flex-shrink-0"
+                    style={{ backgroundColor: isRecording ? 'var(--color-danger-hover)' : 'var(--color-primary)' }}
+                >
+                    {isRecording ? <StopIcon className="w-6 h-6 text-white" aria-hidden="true" /> : <MicIcon className="w-6 h-6 text-white" aria-hidden="true" />}
                 </button>
+                <label htmlFor="chat-input" className="sr-only">Type your question</label>
                 <div className="relative flex-grow">
                     <input
+                        id="chat-input"
                         type="text"
                         value={currentInput}
                         onChange={(e) => setCurrentInput(e.target.value)}
@@ -67,8 +75,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                         onBlur={(e) => { e.target.style.borderColor = 'var(--color-gray-600)'; e.target.style.boxShadow = 'none'; }}
                         disabled={isSashaThinking}
                     />
-                    <button onClick={() => handleSendMessage(currentInput)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors duration-200 disabled:bg-gray-600" style={{ backgroundColor: 'var(--color-primary)' }} disabled={isSashaThinking}>
-                        <SendIcon className="w-5 h-5 text-white" />
+                    <button
+                        onClick={() => handleSendMessage(currentInput)}
+                        aria-label="Send message"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors duration-200 disabled:bg-gray-600"
+                        style={{ backgroundColor: 'var(--color-primary)' }}
+                        disabled={isSashaThinking}
+                    >
+                        <SendIcon className="w-5 h-5 text-white" aria-hidden="true" />
                     </button>
                 </div>
             </div>

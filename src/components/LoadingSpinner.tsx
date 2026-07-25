@@ -20,8 +20,13 @@ const LoadingSpinner: React.FC = () => {
     }, []);
 
     return (
-        <div className="flex flex-col items-center justify-center h-screen text-center p-4">
-            <div className="grid-loader mb-8">
+        <div
+            className="flex flex-col items-center justify-center h-screen text-center p-4"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+        >
+            <div className="grid-loader mb-8" aria-hidden="true">
                 <div></div>
                 <div></div>
                 <div></div>
@@ -32,6 +37,7 @@ const LoadingSpinner: React.FC = () => {
                 <div></div>
                 <div></div>
             </div>
+            <span className="sr-only">Loading</span>
             <p className="text-2xl font-bold tracking-wider text-gray-300 animate-fadeInUp h-8" style={{ animationDelay: '0.5s' }}>
                 {loadingMessages[messageIndex]}
             </p>

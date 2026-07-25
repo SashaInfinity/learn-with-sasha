@@ -70,22 +70,45 @@ const InteractiveQuiz: React.FC<InteractiveQuizProps> = ({ questions }) => {
             <p className="text-sm text-gray-400 mb-4">Question {currentQuestionIndex + 1} of {questions.length}</p>
             <p className="text-lg text-gray-200 mb-6">{currentQuestion.question}</p>
             
+            {/* Non-color feedback region — announced to screen readers and shown
+                as text so it's not green/red-only (colorblind-safe). */}
+            {showFeedback && (
+                <p
+                    role="status"
+                    aria-live="assertive"
+                    className="mt-4 mb-2 font-semibold"
+                    style={{
+                        color:
+                            selectedAnswer === currentQuestion.answer
+                                ? 'var(--color-success)'
+                                : 'var(--color-danger)',
+                    }}
+                >
+                    {selectedAnswer === currentQuestion.answer
+                        ? '✓ Correct!'
+                        : `✗ Not quite — the correct answer is highlighted.`}
+                </p>
+            )}
+
             <div className="space-y-3">
                 {currentQuestion.options.map((option, index) => {
                     const style: React.CSSProperties = {
                         transition: 'all 0.2s ease-in-out',
                     };
-                    
+                    // Determine a visible correctness marker in addition to color.
+                    let marker = '';
                     if (showFeedback) {
                         style.transform = 'scale(1.01)';
                         if (index === currentQuestion.answer) {
                             style.backgroundColor = `rgba(var(--color-success-rgb), 0.3)`;
                             style.borderColor = `var(--color-success)`;
                             style.boxShadow = `0 0 15px rgba(var(--color-success-rgb), 0.5)`;
+                            marker = ' ✓';
                         } else if (index === selectedAnswer) {
                             style.backgroundColor = `rgba(var(--color-danger-rgb), 0.3)`;
                             style.borderColor = `var(--color-danger)`;
                             style.boxShadow = `0 0 15px rgba(var(--color-danger-rgb), 0.5)`;
+                            marker = ' ✗';
                         } else {
                             style.opacity = '0.6';
                         }
@@ -97,10 +120,22 @@ const InteractiveQuiz: React.FC<InteractiveQuizProps> = ({ questions }) => {
                              style.boxShadow = `0 0 15px var(--color-primary-glow)`;
                         }
                     }
-                    
+
                     return (
-                        <button key={index} onClick={() => handleAnswerSelect(index)} className="w-full text-left p-4 rounded-lg border-2 transform hover:scale-[1.03] bg-gray-700 border-gray-600 text-gray-300" style={style} disabled={showFeedback}>
-                            {option}
+                        <button
+                            key={index}
+                            onClick={() => handleAnswerSelect(index)}
+                            aria-pressed={selectedAnswer === index}
+                            className="w-full text-left p-4 rounded-lg border-2 transform hover:scale-[1.03] bg-gray-700 border-gray-600 text-gray-300"
+                            style={style}
+                            disabled={showFeedback}
+                        >
+                            <span aria-hidden={!!marker}>{option}</span>
+                            {marker && (
+                                <span className="font-bold ml-2" aria-hidden="true">
+                                    {marker.trim()}
+                                </span>
+                            )}
                         </button>
                     )
                 })}

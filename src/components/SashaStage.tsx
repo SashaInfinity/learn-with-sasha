@@ -5,8 +5,9 @@
  *   - hero mode: visible from the landing/login page at a center-screen anchor
  *     (no dock element required).
  *   - mood beats: subtle overlays for wave/thinking/celebrate/shake/talking.
- *   - talk animation: the Head mesh scales/bobs to the live TTS audio amplitude
- *     (the GLB has no jaw bone, so we fake lip-sync on the whole head).
+ *   - talk animation: a SAFE whole-model yaw/bob to the live TTS amplitude (we
+ *     never manipulate the Head sub-mesh — its authored transform places the
+ *     head correctly, and the GLB has no jaw bone anyway).
  *
  * Mounted once in AppShell and never unmounts, so navigating between
  * Landing / Auth / Chat glides the same model between poses.
@@ -103,7 +104,6 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
     scene.add(ground);
 
     let model: THREE.Object3D | null = null;
-    let headMesh: THREE.Object3D | null = null;
     let baseScale = 1;
     // The GLB's bounding-box centre/size in unscaled local units.
     const localCenter = new THREE.Vector3();
@@ -138,9 +138,6 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
         model.position.sub(center.multiplyScalar(baseScale));
         model.position.y -= isMobile ? 0.8 : 0.3;
         scene.add(model);
-        // Grab the Head sub-mesh for the talk animation (fake lip-sync).
-        headMesh = model.getObjectByName('Head') ?? null;
-        if (headMesh) headMesh.userData.baseY = headMesh.position.y;
       },
       undefined,
       (error: unknown) => {
@@ -248,17 +245,13 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       if (currentMode !== 'hidden') {
         const amp = getVoiceAmplitude(); // 0..1 while speaking, else 0
         if (currentMood === 'talking' || amp > 0.02) {
-          // Talk: head-mesh bob/scale to amplitude (fake lip-sync).
-          if (headMesh) {
-            const s = 1 + amp * 0.06;
-            headMesh.scale.set(s, s + amp * 0.03, s);
-            headMesh.position.y = (headMesh.userData.baseY ?? 0) + amp * 0.04 * baseScale;
-          }
-          targetRotY += Math.sin(elapsed * 9) * amp * 0.04;
-        } else if (headMesh) {
-          // Revert head mesh toward rest when not talking.
-          headMesh.scale.lerp(new THREE.Vector3(1, 1, 1), 0.2);
-          headMesh.position.y = headMesh.userData.baseY ?? 0;
+          // Talk effect: SAFE whole-model motion only (never touch the Head
+          // sub-mesh — its authored transform places the head correctly, and
+          // editing it is what previously pulled the head out of place). We
+          // add a tiny yaw wobble + vertical bob from the audio amplitude so
+          // Sasha reads as "speaking" without breaking the rig.
+          targetRotY += Math.sin(elapsed * 9) * amp * 0.05;
+          targetPos.y += amp * 0.02;
         }
 
         if (currentMood === 'wave') {

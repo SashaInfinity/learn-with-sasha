@@ -17,7 +17,7 @@
  *     formatted lesson into the active chat as a model message (also persisted).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Role, type ChatHistoryEntry, type ChatKind, type Message, type Preferences, type SessionSummary } from '../types';
+import { Role, type ChatHistoryEntry, type Message, type Preferences, type SessionSummary } from '../types';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useVoice } from '../context/VoiceContext';
@@ -44,7 +44,7 @@ function recallSession(): number | null {
 import Sidebar from './Sidebar';
 import ChatPanel from './ChatPanel';
 import LessonModal from './LessonModal';
-import { BookOpenIcon, SparklesIcon, MenuIcon, XIcon } from './IconComponents';
+import { MenuIcon, PlusIcon, XIcon } from './IconComponents';
 
 const SOLVER_HINTS = [
   'What is 15% of 80?',
@@ -60,7 +60,7 @@ function toMessage(entry: ChatHistoryEntry): Message {
   };
 }
 
-export default function ChatHome() {
+export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
   const { user } = useAuth();
   const { setMood } = useVoice();
   const { toast } = useToast();
@@ -69,9 +69,13 @@ export default function ChatHome() {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [thinking, setThinking] = useState(false);
-  const [kind, setKind] = useState<ChatKind>('chat');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lessonOpen, setLessonOpen] = useState(false);
+  // The navbar's "Generate Lesson" CTA bumps this counter; open the modal on
+  // each bump (skip the initial mount value).
+  useEffect(() => {
+    if (lessonTrigger > 0) setLessonOpen(true);
+  }, [lessonTrigger]);
   // Saved preferences — flow into chat/solve/lesson as the remembered context
   // (language + interests) so the experience is continuous across sessions.
   const [prefs, setPrefs] = useState<Preferences | null>(null);
@@ -126,8 +130,7 @@ export default function ChatHome() {
     activeIdRef.current = id;
     rememberSession(id);
     try {
-      const { session, messages: msgs } = await api.getSession(id);
-      setKind(session.kind);
+      const { messages: msgs } = await api.getSession(id);
       setMessages(msgs.map(toMessage));
     } catch {
       setMessages([]);
@@ -136,7 +139,6 @@ export default function ChatHome() {
 
   const newChat = useCallback(async () => {
     const { session } = await api.createSession('chat');
-    setKind('chat');
     setMessages([]);
     setActiveId(session.id);
     activeIdRef.current = session.id;
@@ -164,7 +166,6 @@ export default function ChatHome() {
   const ensureSession = useCallback(async (): Promise<number | null> => {
     if (activeIdRef.current) return activeIdRef.current;
     const { session } = await api.createSession('chat');
-    setKind('chat');
     setActiveId(session.id);
     activeIdRef.current = session.id;
     rememberSession(session.id);
@@ -266,122 +267,142 @@ export default function ChatHome() {
   );
 
   return (
-    <div className="lws-container lws-page lws-chat-shell">
-      <div className="lws-grid">
-        {/* Dock column: the 3D Sasha character + a speech bubble.
-            Hidden below lg (mobile/tablet) where she'd crowd the chat. */}
-        <div className="lws-dock-col lws-hide-below-lg">
-          <div className="lws-bubble-slot">
-            <div className="lws-bubble">
-              <SparklesIcon className="lws-bubble-icon" width={17} height={17} />
-              <span className="lws-bubble-text">
-                Hi {user?.display_name ?? 'there'}! What shall we learn today?
-              </span>
-            </div>
-          </div>
-          <div className="lws-sasha-frame">
-            <div id="sasha-dock" className="lws-dock" />
-            <p className="lws-sasha-caption lws-small">Sasha · your AI tutor</p>
-          </div>
-        </div>
+    <main
+      className="flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6"
+      style={{ padding: 'calc(var(--lws-header-h) + 24px) 16px 24px' }}
+    >
+      {/* ============ LEFT: Mascot / Tutor Status Card (lg: 4 cols) ======== */}
+      <section className="lg:col-span-4 flex flex-col gap-4 lws-hide-below-lg">
+        <div className="lws-mascot-card bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col items-center relative">
+          <div className="lws-mascot-glow" />
 
-        {/* Content column: sidebar + chat. */}
-        <div className="lws-content-col">
-          {/* Action strip above the chat panel. The menu button (mobile only)
-              opens the sessions drawer. */}
-          <div className="lws-chat-toolbar">
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="lws-icon-btn lws-show-below-lg"
-              aria-label="Open conversations"
-            >
-              <MenuIcon width={18} height={18} />
-            </button>
-            <span className="lws-label-tag" style={{ margin: 0 }}>
-              {kind === 'solver' ? 'Math solver' : kind === 'lesson' ? 'Lesson' : 'Chat'}
-            </span>
-            <button
-              onClick={() => setLessonOpen(true)}
-              className="lws-btn lws-btn-ghost lws-btn-sm lws-chat-toolbar-action"
-            >
-              <BookOpenIcon width={16} height={16} />
-              <span className="lws-hide-below-sm">Generate a lesson</span>
-              <span className="lws-show-below-sm">Lesson</span>
-            </button>
-          </div>
-
-          <div className="lws-chat-body">
-            {/* Desktop sidebar: a persistent left column. */}
-            <aside className="lws-sidebar-desktop lws-hide-below-lg">
-              <Sidebar
-                sessions={sessions}
-                activeId={activeId}
-                loading={sessionsLoading}
-                onNew={() => void newChat()}
-                onSelect={(id) => void selectSession(id)}
-                onDelete={(id) => void deleteSession(id)}
-              />
-            </aside>
-
-            {/* Mobile drawer: slides over the chat when toggled. */}
-            {drawerOpen && (
-              <div className="lws-drawer-overlay" onClick={() => setDrawerOpen(false)}>
-                <aside
-                  className="lws-drawer"
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Conversations"
-                >
-                  <div className="lws-drawer-header">
-                    <span className="lws-h3">Conversations</span>
-                    <button
-                      onClick={() => setDrawerOpen(false)}
-                      className="lws-icon-btn"
-                      aria-label="Close conversations"
-                    >
-                      <XIcon width={18} height={18} />
-                    </button>
-                  </div>
-                  <Sidebar
-                    sessions={sessions}
-                    activeId={activeId}
-                    loading={sessionsLoading}
-                    onNew={() => {
-                      void newChat();
-                      setDrawerOpen(false);
-                    }}
-                    onSelect={(id) => {
-                      void selectSession(id);
-                      setDrawerOpen(false);
-                    }}
-                    onDelete={(id) => void deleteSession(id)}
-                  />
-                </aside>
+          {/* Speech-bubble greeting */}
+          <div className="lws-bubble w-full p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="text-amber-500 text-lg">✨</span>
+              <div>
+                <p className="text-xs font-semibold text-amber-800 uppercase tracking-wider mb-0.5">
+                  Welcome back
+                </p>
+                <h2 className="text-sm font-semibold text-slate-800">
+                  Hi {user?.display_name ?? 'there'}! What shall we learn today?
+                </h2>
               </div>
-            )}
-
-            <div className="lws-chat-main">
-              <ChatPanel
-                messages={messages}
-                isThinking={thinking}
-                onSend={sendMessage}
-                onSimplify={simplify}
-                starters={SOLVER_HINTS}
-                placeholder={
-                  activeId
-                    ? 'Type your question…'
-                    : 'Ask Sasha anything — a math problem, a concept, anything.'
-                }
-              />
             </div>
           </div>
+
+          {/* The 3D character projects into #sasha-dock here. */}
+          <div className="my-8 flex flex-col items-center">
+            <div id="sasha-dock" className="lws-dock" />
+            <span className="mt-4 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Sasha is active
+            </span>
+          </div>
+
+          {/* Tutor details */}
+          <div className="text-center w-full pt-4 border-t border-slate-100">
+            <h3 className="font-bold text-slate-800">Sasha</h3>
+            <p className="text-xs text-slate-500">Your Interactive AI Math Tutor</p>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ============ RIGHT: History + Active Chat (lg: 8 cols) ============ */}
+      <section className="lg:col-span-8 grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-100/50 p-2 rounded-2xl border border-slate-200/80">
+        {/* Mobile: a menu button to open the sessions drawer. */}
+        <div className="md:hidden flex items-center justify-between px-1 pb-1">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex items-center gap-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 px-3 py-2 rounded-lg"
+            aria-label="Open conversations"
+          >
+            <MenuIcon width={16} height={16} />
+            Sessions
+          </button>
+          <button
+            onClick={() => setLessonOpen(true)}
+            className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium px-3 py-2 rounded-lg"
+          >
+            <PlusIcon width={14} height={14} /> Lesson
+          </button>
+        </div>
+
+        {/* Sessions history (md: 4 cols, fixed height) */}
+        <aside className="hidden md:flex md:col-span-4 bg-white rounded-xl border border-slate-200/60 p-3 flex-col h-[650px]">
+          <Sidebar
+            sessions={sessions}
+            activeId={activeId}
+            loading={sessionsLoading}
+            onNew={() => void newChat()}
+            onSelect={(id) => void selectSession(id)}
+            onDelete={(id) => void deleteSession(id)}
+          />
+        </aside>
+
+        {/* Active chat (md: 8 cols, fixed height) */}
+        <div className="md:col-span-8 h-[650px]">
+          <ChatPanel
+            messages={messages}
+            isThinking={thinking}
+            onSend={sendMessage}
+            onSimplify={simplify}
+            starters={SOLVER_HINTS}
+            title={
+              activeId
+                ? sessions.find((s) => s.id === activeId)?.title ?? 'New chat'
+                : 'New chat'
+            }
+            placeholder={
+              activeId
+                ? 'Type your question...'
+                : 'Ask Sasha anything — a math problem, a concept, anything.'
+            }
+          />
+        </div>
+      </section>
+
+      {/* Mobile sessions drawer */}
+      {drawerOpen && (
+        <div className="lws-drawer-overlay" onClick={() => setDrawerOpen(false)}>
+          <aside
+            className="lws-drawer"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Conversations"
+          >
+            <div className="lws-drawer-header">
+              <span className="font-bold text-slate-800">Conversations</span>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100"
+                aria-label="Close conversations"
+              >
+                <XIcon width={18} height={18} />
+              </button>
+            </div>
+            <Sidebar
+              sessions={sessions}
+              activeId={activeId}
+              loading={sessionsLoading}
+              onNew={() => {
+                void newChat();
+                setDrawerOpen(false);
+              }}
+              onSelect={(id) => {
+                void selectSession(id);
+                setDrawerOpen(false);
+              }}
+              onDelete={(id) => void deleteSession(id)}
+            />
+          </aside>
+        </div>
+      )}
 
       <LessonModal
         isOpen={lessonOpen}
         onClose={() => setLessonOpen(false)}
         onLesson={(text) => void onLesson(text)}
       />
-    </div>
+    </main>
   );
 }

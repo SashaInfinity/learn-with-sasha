@@ -1,10 +1,11 @@
 /**
- * ChatPanel — the Q&A surface. Ported from sasha_lms's learn-with-sasha module
- * and re-themed to the brand tokens. Uses our DOMPurify-backed Markdown
- * renderer (src/lib/markdown) and our hand-rolled icons (no lucide-react dep).
+ * ChatPanel — the active conversation surface, styled per the dashboard mockup.
  *
- * Session lifecycle (creating/saving/loading) lives in the parent (ChatHome);
- * this component is a controlled view of `messages` + callbacks.
+ * Structure: header (status dot + title + voice toggle) → scrollable messages
+ * (amber user bubbles, AI messages with avatar + Speak/Simplify action bar) →
+ * input row with an amber send button.
+ *
+ * Session lifecycle lives in the parent (ChatHome); this is a controlled view.
  */
 import { useEffect, useRef, useState } from 'react';
 import { Role, type Message } from '../types';
@@ -14,32 +15,18 @@ import VoiceControlPanel from './VoiceControlPanel';
 import { Markdown } from '../lib/markdown';
 
 const SashaAvatar = () => (
-  <div
-    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px]"
-    style={{ background: 'var(--lws-primary)' }}
-    aria-hidden
-  >
-    <SparklesIcon className="text-white" width={15} height={15} />
+  <div className="w-8 h-8 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0 mt-1">
+    <SparklesIcon width={16} height={16} />
   </div>
 );
 
 const ThinkingIndicator = () => (
-  <div className="lws-fade-in-up my-4 flex items-start gap-3">
+  <div className="flex items-start gap-3 my-3">
     <SashaAvatar />
-    <div
-      className="flex items-center rounded-2xl rounded-bl-md px-4 py-3.5"
-      style={{
-        background: 'rgba(200, 150, 90, 0.1)',
-        border: '1px solid var(--lws-glass-border)',
-      }}
-      role="status"
-      aria-label="Sasha is thinking"
-    >
-      <div className="flex items-center space-x-1.5">
-        <div className="lws-thinking-dot" />
-        <div className="lws-thinking-dot" style={{ animationDelay: '0.2s' }} />
-        <div className="lws-thinking-dot" style={{ animationDelay: '0.4s' }} />
-      </div>
+    <div className="bg-slate-50 border border-slate-200/70 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '300ms' }} />
     </div>
   </div>
 );
@@ -52,70 +39,42 @@ interface ChatMessageProps {
 
 const ChatMessage = ({ message, onSimplify, onSpeak }: ChatMessageProps) => {
   const isUser = message.role === Role.USER;
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <div className="bg-amber-500 text-white font-medium px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[85%] shadow-sm text-sm">
+          {message.text}
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className={`lws-fade-in-up my-4 flex items-start gap-3 ${isUser ? 'justify-end' : ''}`}>
-      {!isUser && <SashaAvatar />}
-      <div
-        className={`max-w-xl px-4 py-3 ${
-          isUser ? 'rounded-2xl rounded-br-md' : 'rounded-2xl rounded-bl-md'
-        }`}
-        style={{
-          background: isUser ? 'var(--lws-primary)' : 'rgba(200, 150, 90, 0.1)',
-          color: isUser ? '#ffffff' : 'var(--lws-body)',
-          border: isUser ? undefined : '1px solid var(--lws-glass-border)',
-          fontSize: '14px',
-          lineHeight: 1.65,
-        }}
-      >
-        {isUser ? (
-          <p className="whitespace-pre-wrap leading-relaxed">{message.text}</p>
-        ) : (
+    <div className="flex items-start gap-3">
+      <SashaAvatar />
+      <div className="bg-slate-50 border border-slate-200/70 p-4 rounded-2xl rounded-tl-sm max-w-[90%] text-slate-800 space-y-2 leading-relaxed text-sm">
+        <div className="lws-markdown">
           <Markdown content={message.text} />
-        )}
-        {message.image && (
-          <img
-            src={message.image}
-            alt="Uploaded problem"
-            className="mt-3 max-h-48 max-w-full rounded-lg"
-          />
-        )}
-        {!isUser && message.finalAnswer && (
-          <div
-            className="mt-3 rounded-md border px-3 py-2 text-sm font-bold"
-            style={{
-              color: 'var(--lws-success)',
-              background: 'rgba(var(--lws-success-rgb), 0.1)',
-              borderColor: 'var(--lws-success)',
-            }}
-            role="status"
-          >
-            Final Answer: {message.finalAnswer}
+        </div>
+        {message.finalAnswer && (
+          <div className="bg-amber-100/60 border-l-4 border-amber-500 p-2.5 rounded-r-md text-center font-bold text-amber-950 text-sm">
+            {message.finalAnswer}
           </div>
         )}
-        {!isUser && message.text && (
-          <div
-            className="mt-3 flex items-center gap-4 border-t pt-2.5"
-            style={{ borderColor: 'var(--lws-glass-border)' }}
+        {/* Action bar */}
+        <div className="flex items-center gap-4 pt-2 text-xs text-slate-400 border-t border-slate-200/50">
+          <button
+            onClick={() => onSpeak(message.text)}
+            className="hover:text-amber-600 flex items-center gap-1 font-medium"
           >
-            <button
-              onClick={() => onSpeak(message.text)}
-              aria-label="Speak this reply"
-              className="flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-70"
-              style={{ color: 'var(--lws-primary)' }}
-            >
-              <SpeakerIcon width={13} height={13} />
-              Speak
-            </button>
-            <button
-              onClick={() => onSimplify(message.text)}
-              className="flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-70"
-              style={{ color: 'var(--lws-primary)' }}
-            >
-              <MagicWandIcon width={13} height={13} />
-              Simplify
-            </button>
-          </div>
-        )}
+            <SpeakerIcon width={13} height={13} /> Speak
+          </button>
+          <button
+            onClick={() => onSimplify(message.text)}
+            className="hover:text-amber-600 flex items-center gap-1 font-medium"
+          >
+            <MagicWandIcon width={13} height={13} /> Simplify
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -126,8 +85,8 @@ interface ChatPanelProps {
   isThinking: boolean;
   onSend: (text: string) => void;
   onSimplify: (text: string) => void;
-  /** Optional starter prompts shown when the thread is empty. */
   starters?: string[];
+  title?: string;
   placeholder?: string;
 }
 
@@ -143,20 +102,18 @@ export default function ChatPanel({
   onSend,
   onSimplify,
   starters = DEFAULT_STARTERS,
-  placeholder = 'Type your question…',
+  title = 'New chat',
+  placeholder = 'Type your question...',
 }: ChatPanelProps) {
   const { speak, muted, setMood } = useVoice();
   const [input, setInput] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
-  // Track the last message we auto-spoke so we don't replay on re-renders.
   const lastSpokenIdx = useRef(-1);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
 
-  // Auto-speak a brand-new model reply (only the latest, only once, only if
-  // not muted, only for plain text replies — skip the giant lesson dumps).
   useEffect(() => {
     if (muted || messages.length === 0) return;
     const last = messages[messages.length - 1];
@@ -165,7 +122,7 @@ export default function ChatPanel({
       last.role === Role.MODEL &&
       lastIdx !== lastSpokenIdx.current &&
       last.text.length > 0 &&
-      last.text.length <= 600 // skip very long lesson-formatted replies
+      last.text.length <= 600
     ) {
       lastSpokenIdx.current = lastIdx;
       speak(last.text);
@@ -180,15 +137,29 @@ export default function ChatPanel({
   };
 
   return (
-    <div className="lws-panel flex h-full flex-col p-5">
-      {/* Header row: voice controls (mute + transport + sliders). */}
-      <div className="mb-3 flex items-center justify-end">
+    <div className="bg-white rounded-xl border border-slate-200/60 flex flex-col h-full shadow-sm overflow-hidden">
+      {/* Chat header */}
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full shrink-0" />
+          <span className="text-xs font-bold text-slate-700 truncate">{title}</span>
+        </div>
         <VoiceControlPanel />
       </div>
-      <div className="mb-4 flex-grow overflow-y-auto pr-1" role="log" aria-live="polite" aria-label="Conversation with Sasha">
+
+      {/* Messages */}
+      <div
+        className="flex-1 p-4 overflow-y-auto space-y-4"
+        role="log"
+        aria-live="polite"
+        aria-label="Conversation with Sasha"
+      >
         {messages.length === 0 && !isThinking && (
-          <div className="flex h-full flex-col items-center justify-center px-4 text-center">
-            <p className="lws-small mb-5 max-w-xs">
+          <div className="h-full flex flex-col items-center justify-center text-center px-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 mb-3">
+              <SparklesIcon width={22} height={22} />
+            </div>
+            <p className="text-sm text-slate-500 mb-4 max-w-xs">
               Stuck on something? Ask Sasha anything.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
@@ -196,8 +167,7 @@ export default function ChatPanel({
                 <button
                   key={starter}
                   onClick={() => onSend(starter)}
-                  className="lws-btn lws-btn-ghost lws-btn-sm"
-                  style={{ fontSize: '12px' }}
+                  className="text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition-colors"
                 >
                   {starter}
                 </button>
@@ -205,6 +175,7 @@ export default function ChatPanel({
             </div>
           </div>
         )}
+
         {messages.map((msg, index) => (
           <ChatMessage
             key={`${index}-${msg.role}-${msg.text.slice(0, 12)}`}
@@ -217,33 +188,29 @@ export default function ChatPanel({
         <div ref={endRef} />
       </div>
 
-      <div className="relative mt-auto">
-        <label htmlFor="lws-chat-input" className="sr-only">
-          Ask Sasha a question
-        </label>
-        <input
-          id="lws-chat-input"
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onFocus={() => setMood('attentive')}
-          onBlur={() => setMood('idle')}
-          onKeyDown={(e) => e.key === 'Enter' && submit()}
-          placeholder={placeholder}
-          disabled={isThinking}
-          className="lws-field pr-12"
-        />
-        <button
-          onClick={submit}
-          disabled={isThinking || !input.trim()}
-          aria-label="Send question"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[9px] p-2 transition-colors disabled:bg-gray-200"
-          style={{
-            background: isThinking || !input.trim() ? undefined : 'var(--lws-primary)',
-          }}
-        >
-          <SendIcon className="text-white" width={15} height={15} />
-        </button>
+      {/* Input */}
+      <div className="p-3 bg-white border-t border-slate-100">
+        <div className="relative flex items-center">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onFocus={() => setMood('attentive')}
+            onBlur={() => setMood('idle')}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            placeholder={placeholder}
+            disabled={isThinking}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all disabled:opacity-60"
+          />
+          <button
+            onClick={submit}
+            disabled={isThinking || !input.trim()}
+            aria-label="Send question"
+            className="absolute right-2 p-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors disabled:bg-slate-300"
+          >
+            <SendIcon width={16} height={16} />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -119,16 +119,16 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
     <Modal isOpen={isOpen} onClose={onClose} title="Generate a lesson">
       <form onSubmit={submit} className="space-y-4">
         <div className="flex items-center gap-3">
-          <span className="lws-icon-chip">
+          <span className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center border border-amber-500/20">
             <BookOpenIcon width={20} height={20} />
           </span>
-          <p className="lws-small">
+          <p className="text-xs text-slate-500">
             Pick a topic and Sasha will craft a personalized lesson tied to your interests.
           </p>
         </div>
 
         <div>
-          <label htmlFor="lesson-topic" className="lws-field-label">
+          <label htmlFor="lesson-topic" className="block text-sm font-semibold text-slate-700 mb-1.5">
             What would you like to learn?
           </label>
           <input
@@ -138,12 +138,12 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
             placeholder="e.g. Algebra, Probability, Calculus"
             required
             autoFocus
-            className="lws-field"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
           />
         </div>
 
         <div>
-          <label htmlFor="lesson-interests" className="lws-field-label">
+          <label htmlFor="lesson-interests" className="block text-sm font-semibold text-slate-700 mb-1.5">
             Your interests
           </label>
           <input
@@ -151,19 +151,19 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
             value={interests}
             onChange={(e) => setInterests(e.target.value)}
             placeholder="e.g. football, music, gaming"
-            className="lws-field"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
           />
         </div>
 
         <div>
-          <label htmlFor="lesson-language" className="lws-field-label">
+          <label htmlFor="lesson-language" className="block text-sm font-semibold text-slate-700 mb-1.5">
             Language
           </label>
           <select
             id="lesson-language"
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="lws-field"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
           >
             <option>English</option>
             <option>Tamil</option>
@@ -171,24 +171,24 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
         </div>
 
         {error && (
-          <p
-            role="alert"
-            className="lws-small rounded-md border px-3 py-2"
-            style={{
-              color: 'var(--lws-danger)',
-              background: 'rgba(var(--lws-danger-rgb), 0.08)',
-              borderColor: 'rgba(var(--lws-danger-rgb), 0.3)',
-            }}
-          >
+          <p role="alert" className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
             {error}
           </p>
         )}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className="lws-btn lws-btn-ghost lws-btn-sm">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-xl transition-colors"
+          >
             Cancel
           </button>
-          <button type="submit" disabled={busy || !topic.trim()} className="lws-btn lws-btn-fill lws-btn-sm">
+          <button
+            type="submit"
+            disabled={busy || !topic.trim()}
+            className="flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 px-4 py-2 rounded-xl transition-all disabled:opacity-50"
+          >
             {busy && <Spinner size="sm" />}
             {busy ? 'Generating…' : 'Generate'}
           </button>

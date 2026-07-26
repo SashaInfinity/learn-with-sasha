@@ -1,12 +1,12 @@
 /**
  * Sidebar — the sessions rail.
  *
- * Lists previous conversations (chats / solves), lets the student start a new
- * one, switch between them, and delete. This is the "previous sessions with
- * the needed explanation" surface: clicking a session reloads its full thread.
+ * Lists previous conversations, lets the student start a new one, switch, and
+ * delete. Styled to match the dashboard mockup: amber "New Chat" button,
+ * "Recent Sessions" header, active item in amber, inactive items in slate.
  */
 import type { SessionSummary, ChatKind } from '../types';
-import { PlusIcon, TrashIcon, SparklesIcon, CalculatorIcon, BookOpenIcon } from './IconComponents';
+import { PlusIcon, TrashIcon } from './IconComponents';
 
 interface SidebarProps {
   sessions: SessionSummary[];
@@ -17,19 +17,19 @@ interface SidebarProps {
   onDelete: (id: number) => void;
 }
 
-/** Pick a small glyph + label hint per session kind. */
-function kindMeta(kind: ChatKind): { icon: typeof SparklesIcon; hint: string } {
+/** Emoji per session kind (the mockup uses emoji icons in the list). */
+function kindEmoji(kind: ChatKind): string {
   switch (kind) {
     case 'solver':
-      return { icon: CalculatorIcon, hint: 'Math solver' };
+      return '🧮';
     case 'lesson':
-      return { icon: BookOpenIcon, hint: 'Lesson' };
+      return '💡';
     default:
-      return { icon: SparklesIcon, hint: 'Chat' };
+      return '💬';
   }
 }
 
-/** Human-friendly relative-ish timestamp (today/yesterday/date). */
+/** Today / Yesterday / date. */
 function when(iso: string): string {
   const then = new Date(iso).getTime();
   const now = Date.now();
@@ -49,97 +49,91 @@ export default function Sidebar({
   onDelete,
 }: SidebarProps) {
   return (
-    <aside
-      className="lws-panel flex h-full flex-col p-4"
-      aria-label="Previous conversations"
-    >
-      <button onClick={onNew} className="lws-btn lws-btn-fill lws-btn-sm mb-4 w-full">
+    <div className="flex flex-col h-full">
+      <button
+        onClick={onNew}
+        className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm mb-3"
+      >
         <PlusIcon width={16} height={16} />
-        New chat
+        <span className="text-sm">New Chat</span>
       </button>
 
-      <div className="flex-grow overflow-y-auto pr-1">
+      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">
+        Recent Sessions
+      </span>
+
+      <div className="space-y-1 overflow-y-auto flex-1 pr-1">
         {loading ? (
-          <ul className="space-y-1" aria-label="Loading conversations">
+          <div className="space-y-2 px-2 py-2">
             {[0, 1, 2, 3].map((i) => (
-              <li key={i} className="flex items-center gap-2 px-3 py-2.5">
-                <span className="lws-skeleton" style={{ width: 28, height: 28, borderRadius: 8 }} />
-                <span className="flex-grow space-y-1.5">
-                  <span className="lws-skeleton" style={{ display: 'block', height: 10, width: '70%' }} />
-                  <span className="lws-skeleton" style={{ display: 'block', height: 8, width: '40%' }} />
-                </span>
-              </li>
+              <div key={i} className="p-3 rounded-lg">
+                <span
+                  className="lws-skeleton"
+                  style={{ display: 'block', height: 10, width: '70%', marginBottom: 6 }}
+                />
+                <span className="lws-skeleton" style={{ display: 'block', height: 8, width: '40%' }} />
+              </div>
             ))}
-          </ul>
+          </div>
         ) : sessions.length === 0 ? (
-          <p className="lws-small px-2 py-8 text-center" style={{ color: 'var(--lws-gray-light)' }}>
-            No conversations yet.
-          </p>
+          <p className="text-xs text-slate-400 px-3 py-8 text-center">No conversations yet.</p>
         ) : (
-          <ul className="space-y-1">
-            {sessions.map((s) => {
-              const meta = kindMeta(s.kind);
-              const Icon = meta.icon;
-              const active = s.id === activeId;
-              return (
-                <li key={s.id}>
-                  <div
-                    className="group flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-all"
-                    style={{
-                      cursor: 'pointer',
-                      background: active ? 'var(--lws-tint)' : 'transparent',
-                      borderColor: active ? 'var(--lws-tint-border)' : 'transparent',
-                    }}
-                    onClick={() => onSelect(s.id)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        onSelect(s.id);
-                      }
-                    }}
-                    aria-pressed={active}
+          sessions.map((s) => {
+            const active = s.id === activeId;
+            return (
+              <div
+                key={s.id}
+                className={`group p-3 rounded-lg cursor-pointer transition-all border ${
+                  active
+                    ? 'bg-amber-50/80 border-amber-200/80'
+                    : 'hover:bg-slate-50 border-transparent'
+                }`}
+                onClick={() => onSelect(s.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelect(s.id);
+                  }
+                }}
+                aria-pressed={active}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={active ? 'text-amber-600' : 'text-slate-400'}>
+                    {kindEmoji(s.kind)}
+                  </span>
+                  <span
+                    className={`text-xs font-bold truncate flex-grow ${
+                      active ? 'text-amber-900' : 'text-slate-600'
+                    }`}
+                    title={s.title}
                   >
-                    <span
-                      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg"
-                      style={{
-                        background: active ? 'var(--lws-primary)' : 'rgba(200,150,90,0.12)',
-                        color: active ? '#fff' : 'var(--lws-primary)',
-                      }}
-                    >
-                      <Icon width={14} height={14} />
-                    </span>
-                    <div className="min-w-0 flex-grow">
-                      <p
-                        className="truncate text-sm font-semibold"
-                        style={{ color: 'var(--lws-dark)' }}
-                        title={s.title}
-                      >
-                        {s.title}
-                      </p>
-                      <p className="lws-small" style={{ fontSize: '11px' }}>
-                        {meta.hint} · {when(s.updatedAt)}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(s.id);
-                      }}
-                      aria-label={`Delete conversation: ${s.title}`}
-                      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100"
-                      style={{ color: 'var(--lws-gray)' }}
-                    >
-                      <TrashIcon width={14} height={14} />
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                    {s.title}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(s.id);
+                    }}
+                    aria-label={`Delete conversation: ${s.title}`}
+                    className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <TrashIcon width={14} height={14} />
+                  </button>
+                </div>
+                <span
+                  className={`text-[10px] ml-6 block ${
+                    active ? 'text-amber-700/70' : 'text-slate-400'
+                  }`}
+                >
+                  {s.kind} · {when(s.updatedAt)}
+                </span>
+              </div>
+            );
+          })
         )}
       </div>
-    </aside>
+    </div>
   );
 }

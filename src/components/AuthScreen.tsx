@@ -1,7 +1,6 @@
 /**
  * Auth screen: email + password login against the shared sasha_lms account.
- * Brand-styled; Sasha (hero mode, persistent stage) floats beside the form on
- * desktop and above it on mobile.
+ * Sasha (hero mode) floats beside the form on desktop and behind it on mobile.
  */
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -14,13 +13,11 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Sasha waits patiently while the user is on the auth screen.
   useEffect(() => {
     setMood('thinking');
     return () => setMood('idle');
   }, [setMood]);
 
-  // Shake + sympathetic line on login error.
   useEffect(() => {
     if (error) {
       setMood('shake');
@@ -45,34 +42,34 @@ export default function AuthScreen() {
   const busy = submitting || loading;
 
   return (
-    <div className="lws-container flex min-h-screen items-center justify-center py-16">
+    <div className="min-h-screen flex items-center justify-center px-4 py-16">
       <div className="grid w-full max-w-5xl grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_420px]">
-        {/* Left: Sasha floats here (hero mode, centre-left). On desktop we reserve
-            the space; on mobile she's full-screen behind, so we hide this column. */}
+        {/* Sasha floats here (hero mode) — reserve space on desktop. */}
         <div
           className="hidden lg:flex lg:flex-col lg:items-center"
           aria-hidden
           style={{ minHeight: 'clamp(360px, 60vh, 600px)' }}
         >
-          <div
-            className="lws-bubble"
-            style={{ maxWidth: 280, textAlign: 'center', marginBottom: 12 }}
-          >
-            <span className="lws-bubble-text">Sign in and let&apos;s begin.</span>
+          <div className="bg-amber-50 border border-amber-200/60 rounded-2xl px-4 py-3 shadow-sm text-center mb-3">
+            <span className="text-sm font-semibold text-slate-800">Sign in and let&apos;s begin.</span>
           </div>
         </div>
 
-        {/* Right: the form card. */}
-        <div className="lws-panel w-full p-8 lws-fade-in-up">
+        {/* Form card */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm w-full p-8">
           <div className="mb-8 text-center">
-            <span className="lws-label-tag justify-center">Welcome back</span>
-            <h1 className="lws-h1">Sign In</h1>
-            <p className="lws-small mt-2">Use your Sasha account</p>
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold text-2xl border border-amber-500/20 mx-auto mb-3">
+              ∞
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
+            <p className="text-sm text-slate-500 mt-1">Use your Sasha account</p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="lws-field-label">Email</label>
+              <label htmlFor="login-email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Email
+              </label>
               <input
                 id="login-email"
                 type="email"
@@ -85,12 +82,14 @@ export default function AuthScreen() {
                   if (error) clearError();
                 }}
                 placeholder="you@example.com"
-                className="lws-field"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
               />
             </div>
 
             <div>
-              <label htmlFor="login-password" className="lws-field-label">Password</label>
+              <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Password
+              </label>
               <input
                 id="login-password"
                 type="password"
@@ -102,43 +101,33 @@ export default function AuthScreen() {
                   if (error) clearError();
                 }}
                 placeholder="••••••••"
-                className="lws-field"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
               />
             </div>
 
             {error && (
-              <p
-                role="alert"
-                className="lws-small rounded-md border px-3 py-2"
-                style={{
-                  color: 'var(--lws-danger)',
-                  background: 'rgba(var(--lws-danger-rgb), 0.08)',
-                  borderColor: 'rgba(var(--lws-danger-rgb), 0.3)',
-                }}
-              >
+              <p role="alert" className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
                 {error}
               </p>
             )}
 
-            <button type="submit" disabled={busy} className="lws-btn lws-btn-fill w-full">
-              {busy && (
-                <span
-                  className="lws-voice-spinner"
-                  aria-hidden
-                  style={{ width: 16, height: 16 }}
-                />
-              )}
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold py-2.5 rounded-xl shadow-sm hover:opacity-95 transition-all disabled:opacity-60"
+            >
+              {busy && <span className="lws-voice-spinner" aria-hidden style={{ width: 16, height: 16 }} />}
               {busy ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
 
-          <p className="mt-6 text-center lws-small">
+          <p className="mt-6 text-center text-xs text-slate-500">
             Don&apos;t have an account?{' '}
             <a
               href="https://sashainfinity.com"
               target="_blank"
               rel="noreferrer"
-              style={{ color: 'var(--lws-primary)' }}
+              className="text-amber-600 font-semibold"
             >
               Create one on sashainfinity.com
             </a>

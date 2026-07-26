@@ -3,525 +3,38 @@
 @tailwind utilities;
 
 /* ===========================================================================
-   Learn With Sasha — global styles.
-   Tokens + component classes ported from sasha_lms's learn-with-sasha.css so
-   this app reads as part of the same site: same brand orange (#f4911a, NOT
-   Tailwind's orange-500), same navy, same Inter / Lexend Deca pairing, same
-   glass cards, same easing curve, same radius ladder.
+   Learn With Sasha — design system.
+   Slate + amber, Plus Jakarta Sans, clean white cards with soft borders.
+   Driven by Tailwind utilities in the components; this file holds only the
+   custom pieces Tailwind can't express (bubble tails, mascot glow, voice
+   sliders, spinners, toasts, skeletons) plus the fixed-header height token.
    =========================================================================== */
 
 :root {
-  /* Brand tokens (lifted from sasha_lms pages/home.css `.sasha-home`). */
-  --lws-primary: #f4911a;
-  --lws-primary-light: #ffaa44;
-  --lws-secondary: #082a5e;
-  --lws-dark: #1a1a2e;
-  --lws-gray: #6b7280;
-  --lws-gray-light: #9ca3af;
-  --lws-body: #374151;
-  --lws-bg: #ffffff;
-  --lws-glass-blur: blur(16px) saturate(180%);
-  --lws-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  --lws-glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  --lws-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Brand. */
+  --lws-amber: #f59e0b;       /* amber-500 */
+  --lws-amber-dark: #d97706;  /* amber-600 */
+  --lws-amber-light: #fef3c7; /* amber-100 */
+  --lws-orange: #f97316;      /* orange-500 (gradient end) */
 
-  /* Module-local tokens. */
-  --lws-glass-bg: rgba(200, 150, 90, 0.08);
-  --lws-glass-border: rgba(200, 150, 90, 0.2);
-  --lws-tint: rgba(244, 145, 26, 0.08);
-  --lws-tint-border: rgba(244, 145, 26, 0.18);
-  --lws-success: #43c882;
-  --lws-success-rgb: 67, 200, 130;
-  --lws-danger: #e5484d;
-  --lws-danger-rgb: 229, 72, 77;
+  /* Status. */
+  --lws-success: #10b981;     /* emerald-500 */
+  --lws-danger: #ef4444;      /* red-500 */
 
-  /* Sticky header height — kept in sync with the rendered header (logo + py-3
-     + sign-out button). Consumed by .lws-chat-shell padding and the chat-body
-     height calc so the sidebar can never slide under the header. */
+  /* Sticky header height — consumed by the chat dashboard's top offset. */
   --lws-header-h: 64px;
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--lws-bg);
-  color: var(--lws-body);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #f8fafc; /* slate-50 */
+  color: #1e293b;            /* slate-800 */
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4 {
-  font-family: 'Lexend Deca', sans-serif;
-  color: var(--lws-dark);
-}
+#root { position: relative; min-height: 100vh; }
 
-::selection {
-  background: var(--lws-primary);
-  color: #fff;
-}
-
-#root {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-}
-
-/* --- animations --------------------------------------------------------- */
-@keyframes lwsFadeInUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.lws-fade-in-up { animation: lwsFadeInUp 0.6s var(--lws-ease) forwards; }
-
-@keyframes lwsPop {
-  0%   { opacity: 0; transform: scale(0.4); }
-  60%  { opacity: 1; transform: scale(1.12); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.lws-pop { animation: lwsPop 0.5s var(--lws-ease) both; }
-
-@keyframes lwsDockBounce {
-  0%   { transform: translateY(0); }
-  22%  { transform: translateY(-20px); }
-  42%  { transform: translateY(0); }
-  60%  { transform: translateY(-10px); }
-  78%  { transform: translateY(0); }
-  90%  { transform: translateY(-4px); }
-  100% { transform: translateY(0); }
-}
-.lws-dock-bounce { animation: lwsDockBounce 1s var(--lws-ease); }
-
-@keyframes lwsShake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-7px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(3px); }
-}
-.lws-shake { animation: lwsShake 0.45s var(--lws-ease); }
-
-@keyframes lwsShimmer {
-  0%   { background-position: -140% 0; }
-  100% { background-position: 140% 0; }
-}
-
-@keyframes lwsPulseRing {
-  0%   { box-shadow: 0 0 0 0 rgba(244, 145, 26, 0.45); }
-  70%  { box-shadow: 0 0 0 10px rgba(244, 145, 26, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(244, 145, 26, 0); }
-}
-
-/* --- shell -------------------------------------------------------------- */
-.lws-root {
-  position: relative;
-  font-family: 'Inter', sans-serif;
-  background: var(--lws-bg);
-  color: var(--lws-body);
-  min-height: 100vh;
-}
-
-.lws-container {
-  position: relative;
-  z-index: 3;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 48px;
-}
-@media (max-width: 768px) {
-  .lws-container { padding: 0 16px; }
-}
-
-/* --- grid (chat home: dock | chat) -------------------------------------- */
-.lws-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 32px;
-  align-items: start;
-}
-@media (min-width: 1024px) {
-  .lws-grid {
-    grid-template-columns: minmax(210px, 22%) minmax(0, 1fr);
-    gap: 40px;
-  }
-}
-@media (min-width: 1536px) {
-  .lws-grid {
-    grid-template-columns: minmax(240px, 20%) minmax(0, 1fr);
-    gap: 56px;
-  }
-}
-
-.lws-content-col { position: relative; z-index: 10; }
-
-.lws-dock-col {
-  position: relative;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.lws-sasha-frame {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-/* The dock box SashaStage projects the character into. Portrait, stable size. */
-.lws-dock {
-  width: 100%;
-  max-width: 280px;
-  aspect-ratio: 3 / 4;
-  margin: 0 auto;
-}
-
-.lws-sasha-caption { text-align: center; margin-top: 4px; }
-
-/* --- speech bubble ------------------------------------------------------ */
-.lws-bubble-slot {
-  position: relative;
-  width: 100%;
-  min-height: 62px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  margin-bottom: 6px;
-}
-
-.lws-bubble {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  max-width: 100%;
-  padding: 11px 15px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(244, 145, 26, 0.28);
-  backdrop-filter: var(--lws-glass-blur);
-  -webkit-backdrop-filter: var(--lws-glass-blur);
-  box-shadow: 0 8px 26px rgba(244, 145, 26, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  transform-origin: center bottom;
-}
-.lws-bubble::after {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  left: 50%;
-  width: 11px;
-  height: 11px;
-  margin-left: -5.5px;
-  background: rgba(255, 255, 255, 0.94);
-  border-right: 1px solid rgba(244, 145, 26, 0.28);
-  border-bottom: 1px solid rgba(244, 145, 26, 0.28);
-  transform: rotate(45deg);
-}
-.lws-bubble-icon { width: 17px; height: 17px; color: var(--lws-primary); flex-shrink: 0; }
-.lws-bubble-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--lws-dark);
-}
-
-/* --- typography helpers ------------------------------------------------- */
-.lws-label-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--lws-primary);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 14px;
-}
-.lws-label-tag::before {
-  content: '';
-  width: 28px;
-  height: 2px;
-  background: var(--lws-primary);
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.lws-h1 { font-size: 30px; font-weight: 800; color: var(--lws-dark); letter-spacing: -1px; line-height: 1.18; }
-.lws-h2 { font-size: 22px; font-weight: 700; color: var(--lws-dark); letter-spacing: -0.5px; }
-.lws-h3 { font-size: 16px; font-weight: 700; color: var(--lws-dark); }
-.lws-body { font-size: 15px; color: var(--lws-gray); line-height: 1.7; }
-.lws-small { font-size: 13px; color: var(--lws-gray); }
-
-@media (max-width: 768px) {
-  .lws-h1 { font-size: 24px; letter-spacing: -0.5px; }
-}
-
-/* --- glass surfaces ----------------------------------------------------- */
-.lws-card {
-  position: relative;
-  z-index: 10;
-  /* Fully opaque so the 3D character (rendered behind at z-index 2) never
-     bleeds through and shimmers during animation. */
-  background: #ffffff;
-  border: 1px solid var(--lws-glass-border);
-  border-radius: 24px;
-  box-shadow: var(--lws-glass-shadow);
-  transition: all 0.4s var(--lws-ease);
-}
-.lws-card-interactive:hover {
-  transform: translateY(-6px) scale(1.015);
-  border-color: rgba(244, 145, 26, 0.45);
-  box-shadow: var(--lws-glass-shadow-hover);
-}
-
-.lws-panel {
-  position: relative;
-  z-index: 10;
-  /* Fully opaque — the chat/sidebar panels must sit solidly over the 3D
-     character so she never shimmers through during her idle/talk animation. */
-  background: #ffffff;
-  border: 1px solid var(--lws-glass-border);
-  border-radius: 28px;
-  box-shadow: var(--lws-glass-shadow);
-}
-
-.lws-icon-chip {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(200, 150, 90, 0.12);
-  border: 1px solid rgba(200, 150, 90, 0.18);
-  color: var(--lws-primary);
-  flex-shrink: 0;
-  transition: all 0.4s var(--lws-ease);
-}
-.lws-card-interactive:hover .lws-icon-chip {
-  background: var(--lws-primary);
-  color: #fff;
-  transform: scale(1.08) rotate(5deg);
-}
-
-/* --- buttons ------------------------------------------------------------ */
-.lws-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 13px 26px;
-  border-radius: 14px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.25s var(--lws-ease), box-shadow 0.3s var(--lws-ease),
-    background 0.3s var(--lws-ease), border-color 0.3s var(--lws-ease);
-}
-.lws-btn:active:not(:disabled) { transform: scale(0.95); }
-.lws-btn:focus-visible { outline: 2px solid var(--lws-primary); outline-offset: 2px; }
-.lws-btn:disabled {
-  cursor: not-allowed;
-  background: #e5e7eb;
-  color: var(--lws-gray-light);
-  transform: none !important;
-  box-shadow: none;
-}
-.lws-btn-fill {
-  background: linear-gradient(135deg, #ff9d2f 0%, var(--lws-primary) 55%, #e57d00 100%);
-  color: #fff;
-  box-shadow: 0 8px 22px rgba(244, 145, 26, 0.28);
-}
-.lws-btn-fill:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ffb457 0%, var(--lws-primary-light) 60%, var(--lws-primary) 100%);
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 16px 44px rgba(244, 145, 26, 0.4);
-}
-.lws-btn-ghost {
-  background: var(--lws-tint);
-  border: 1px solid var(--lws-tint-border);
-  color: var(--lws-primary);
-}
-.lws-btn-ghost:hover:not(:disabled) {
-  background: rgba(244, 145, 26, 0.14);
-  transform: translateY(-2px);
-}
-.lws-btn-sm { padding: 9px 18px; font-size: 13px; border-radius: 10px; }
-
-/* --- forms -------------------------------------------------------------- */
-.lws-field-label { display: block; font-size: 14px; font-weight: 600; color: var(--lws-dark); margin-bottom: 8px; }
-.lws-hint { font-size: 12px; color: var(--lws-gray-light); margin-top: 6px; }
-.lws-field {
-  width: 100%;
-  padding: 13px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(140, 130, 200, 0.3);
-  /* Opaque white (was translucent 0.6) so the field stays legible over dark
-     modal panels and any background. Previously the translucent bg blended
-     into the dark modal backdrop, making the placeholder near-invisible. */
-  background: #ffffff;
-  color: var(--lws-dark);
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  transition: all 0.3s var(--lws-ease);
-}
-/* Darker placeholder for WCAG-AA contrast on white (4.83:1). Was --lws-gray-
-   light (#9ca3af) which failed at 2.54:1 on white and ~1:1 on the old tint. */
-.lws-field::placeholder { color: #6b7280; }
-.lws-field:focus {
-  outline: none;
-  background: #fff;
-  border-color: rgba(244, 145, 26, 0.5);
-  box-shadow: 0 0 0 3px rgba(244, 145, 26, 0.12);
-}
-
-/* --- quiz CTA ----------------------------------------------------------- */
-.lws-quiz-cta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 18px;
-  padding: 26px;
-  border-radius: 24px;
-  border: 1px solid rgba(244, 145, 26, 0.28);
-  background: linear-gradient(120deg, rgba(244, 145, 26, 0.1) 0%, rgba(244, 145, 26, 0.03) 60%);
-  box-shadow: var(--lws-glass-shadow);
-  transition: all 0.4s var(--lws-ease);
-}
-.lws-quiz-cta:hover { border-color: rgba(244, 145, 26, 0.45); box-shadow: var(--lws-glass-shadow-hover); }
-@media (min-width: 768px) {
-  .lws-quiz-cta { flex-direction: row; align-items: center; gap: 24px; padding: 28px 32px; }
-}
-.lws-quiz-cta-icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 60px; height: 60px; border-radius: 18px; flex-shrink: 0;
-  background: var(--lws-primary); color: #fff;
-  box-shadow: 0 10px 28px rgba(244, 145, 26, 0.32);
-}
-.lws-quiz-cta-copy { flex: 1 1 auto; min-width: 0; }
-.lws-quiz-cta .lws-label-tag { margin-bottom: 8px; }
-
-/* --- journey rail (kept for any future lesson flow) --------------------- */
-.lws-journey { display: flex; align-items: flex-start; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
-.lws-journey::-webkit-scrollbar { display: none; }
-.lws-journey-step { display: flex; flex: 1 1 0; min-width: 62px; }
-.lws-journey-node {
-  display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;
-  background: transparent; border: none; padding: 0; font: inherit; color: inherit; text-align: center;
-}
-.lws-journey-step[data-clickable='true'] .lws-journey-node { cursor: pointer; }
-.lws-journey-dot {
-  display: flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: 10px;
-  border: 1px solid rgba(200, 150, 90, 0.2);
-  background: rgba(200, 150, 90, 0.08);
-  color: var(--lws-gray-light);
-  font-size: 12px; font-weight: 700;
-  transition: all 0.4s var(--lws-ease);
-}
-.lws-journey-step[data-state='active'] .lws-journey-dot {
-  background: linear-gradient(135deg, var(--lws-primary-light), var(--lws-primary));
-  border-color: var(--lws-primary); color: #fff;
-  box-shadow: 0 6px 20px rgba(244, 145, 26, 0.32);
-  animation: lwsPulseRing 2s var(--lws-ease) infinite;
-}
-.lws-journey-step[data-state='done'] .lws-journey-dot { border-color: rgba(244, 145, 26, 0.4); color: var(--lws-primary); }
-.lws-journey-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.2; text-align: center;
-  color: var(--lws-gray-light); max-width: 100%; overflow-wrap: break-word; transition: color 0.4s var(--lws-ease);
-}
-.lws-journey-step[data-state='active'] .lws-journey-label { color: var(--lws-primary); }
-.lws-journey-step[data-state='done'] .lws-journey-label { color: var(--lws-gray); }
-.lws-journey-line {
-  flex: 1 1 auto; height: 2px; margin-top: 14px; min-width: 12px;
-  background: rgba(200, 150, 90, 0.2); border-radius: 2px; position: relative; overflow: hidden;
-}
-.lws-journey-line::after {
-  content: ''; position: absolute; inset: 0; background: var(--lws-primary);
-  transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--lws-ease);
-}
-.lws-journey-line[data-filled='true']::after { transform: scaleX(1); }
-
-/* --- loader / thinking -------------------------------------------------- */
-.lws-grid-loader { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 64px; height: 64px; }
-.lws-grid-loader > div {
-  width: 100%; height: 100%; background: var(--lws-primary); border-radius: 50%;
-  animation: lwsGridPulse 1.4s infinite ease-in-out;
-}
-@keyframes lwsGridPulse {
-  0%, 100% { transform: scale(0.5); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 1; }
-}
-.lws-grid-loader > div:nth-child(1) { animation-delay: 0s; }
-.lws-grid-loader > div:nth-child(2) { animation-delay: 0.1s; }
-.lws-grid-loader > div:nth-child(3) { animation-delay: 0.2s; }
-.lws-grid-loader > div:nth-child(4) { animation-delay: 0.1s; }
-.lws-grid-loader > div:nth-child(5) { animation-delay: 0.2s; }
-.lws-grid-loader > div:nth-child(6) { animation-delay: 0.3s; }
-.lws-grid-loader > div:nth-child(7) { animation-delay: 0.2s; }
-.lws-grid-loader > div:nth-child(8) { animation-delay: 0.3s; }
-.lws-grid-loader > div:nth-child(9) { animation-delay: 0.4s; }
-
-.lws-thinking-dot {
-  width: 6px; height: 6px; background: var(--lws-primary); border-radius: 50%;
-  animation: lwsThinkingBounce 1.4s infinite ease-in-out both;
-}
-@keyframes lwsThinkingBounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
-}
-
-/* --- responsive helpers ------------------------------------------------- */
-/* Hidden below lg (1024px) — used for the 3D dock + desktop sidebar. */
-.lws-hide-below-lg { display: inherit; }
-.lws-show-below-lg { display: none !important; }
-/* Hidden below sm (640px) — used to shorten button labels on phones. */
-.lws-hide-below-sm { display: inherit; }
-.lws-show-below-sm { display: none !important; }
-
-@media (max-width: 1023px) {
-  .lws-hide-below-lg { display: none !important; }
-  .lws-show-below-lg { display: inline-flex !important; }
-}
-@media (max-width: 639px) {
-  .lws-hide-below-sm { display: none !important; }
-  .lws-show-below-sm { display: inline !important; }
-}
-
-/* Generic square icon button (menu / close). */
-.lws-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid var(--lws-glass-border);
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--lws-dark);
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
-}
-.lws-icon-btn:hover { background: var(--lws-tint); transform: translateY(-1px); }
-.lws-icon-btn:focus-visible { outline: 2px solid var(--lws-primary); outline-offset: 2px; }
-
-/* --- chat shell (sidebar + chat, responsive) ---------------------------- */
-/* The chat shell sits below the FIXED header. The padding-top reserves the
-   header's height so the sidebar can never slide under it. */
-.lws-chat-shell { padding-bottom: 0; padding-top: var(--lws-header-h); }
-
-/* Generic page wrapper (referenced by ChatHome's root; was previously
-   undefined). Adds breathing room below the fixed header. */
-.lws-page { padding-bottom: 32px; }
-
-/* --- fixed top header (chat view) --------------------------------------- */
-/* One source of truth for the header height: the box is exactly --lws-header-h
-   tall, content is vertically centered, and overflow is clipped so the inner
-   row can never spill/glitch over the reserved space. .lws-header-row fills
-   the height and centers its children, replacing the old py-3 + auto-height
-   combo that overflowed. */
+/* --- fixed top header --------------------------------------------------- */
 .lws-header {
   position: fixed;
   top: 0;
@@ -532,10 +45,8 @@ h1, h2, h3, h4 {
   display: flex;
   align-items: center;
   overflow: hidden;
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: var(--lws-glass-blur);
-  -webkit-backdrop-filter: var(--lws-glass-blur);
-  border-bottom: 1px solid var(--lws-glass-border);
+  background-color: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid #e2e8f0; /* slate-200 */
 }
 .lws-header-row {
   width: 100%;
@@ -545,150 +56,70 @@ h1, h2, h3, h4 {
   justify-content: space-between;
 }
 
-/* --- brand wordmark + logo (header) ------------------------------------- */
-.lws-brand {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 0;
-  font: inherit;
+/* --- mascot card (left zone of the dashboard) --------------------------- */
+.lws-mascot-card {
+  position: relative;
+  overflow: hidden;
 }
-.lws-brand-logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-.lws-landing-logo {
-  border-radius: 14px;
-  object-fit: contain;
-  box-shadow: var(--lws-glass-shadow);
+/* Soft amber glow in the corner of the mascot card. */
+.lws-mascot-glow {
+  position: absolute;
+  top: -48px;
+  left: -48px;
+  width: 160px;
+  height: 160px;
+  background: var(--lws-amber-light);
+  border-radius: 9999px;
+  filter: blur(48px);
+  opacity: 0.6;
+  pointer-events: none;
 }
 
-.lws-chat-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-  margin-bottom: 8px;
+/* --- speech bubble (mascot greeting) ------------------------------------ */
+.lws-bubble {
+  position: relative;
+  background: var(--lws-amber-light);
+  border: 1px solid #fde68a; /* amber-200 */
+  border-radius: 16px;
 }
-.lws-chat-toolbar-action { margin-left: auto; }
-
-.lws-chat-body {
-  display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
-  gap: 16px;
-  /* Fill the viewport below the fixed header + toolbar (~60px). */
-  height: calc(100vh - var(--lws-header-h) - 60px);
-  min-height: 480px;
-}
-.lws-sidebar-desktop { min-height: 0; }
-.lws-chat-main { min-height: 0; }
-
-/* On lg+ the page already reserves the dock column via .lws-grid. Below lg
-   the dock is hidden, so the chat takes the full width. */
-@media (max-width: 1023px) {
-  .lws-chat-body {
-    grid-template-columns: minmax(0, 1fr);
-    /* Mobile toolbar is shorter (~52px). */
-    height: calc(100vh - var(--lws-header-h) - 52px);
-  }
+/* Tail pointing down toward the mascot. */
+.lws-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 40px;
+  width: 14px;
+  height: 14px;
+  background: var(--lws-amber-light);
+  border-right: 1px solid #fde68a;
+  border-bottom: 1px solid #fde68a;
+  transform: rotate(45deg);
 }
 
-/* --- mobile sessions drawer --------------------------------------------- */
-.lws-drawer-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: rgba(26, 26, 46, 0.4);
-  backdrop-filter: blur(2px);
-  display: flex;
-  animation: lwsFadeInUp 0.2s ease;
-}
-.lws-drawer {
-  width: min(86vw, 340px);
-  height: 100%;
-  background: var(--lws-bg);
-  border-right: 1px solid var(--lws-glass-border);
-  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-  animation: lwsDrawerIn 0.25s var(--lws-ease);
-}
-@keyframes lwsDrawerIn {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-.lws-drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  padding: 4px 4px 8px;
-  border-bottom: 1px solid var(--lws-glass-border);
-}
-/* The drawer Sidebar fills the remaining height. */
-.lws-drawer > aside,
-.lws-drawer > div {
-  flex: 1 1 auto;
-  min-height: 0;
+/* --- the 3D dock (SashaStage projects the character here) --------------- */
+.lws-dock {
+  width: 100%;
+  max-width: 208px;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
 }
 
-/* --- markdown (rendered by src/lib/markdown.tsx) ------------------------ */
-.lws-root strong, .lws-panel strong, .lws-card strong { color: var(--lws-dark); font-weight: 700; }
-
-/* --- landing mobile legibility ------------------------------------------ */
-/* Below lg, Sasha renders full-screen behind the landing text. Wrap the text
-   in a translucent glass card so it stays readable over the character. */
-@media (max-width: 1023px) {
-  .lws-landing-card {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: var(--lws-glass-blur);
-    -webkit-backdrop-filter: var(--lws-glass-blur);
-    border: 1px solid var(--lws-glass-border);
-    border-radius: 24px;
-    box-shadow: var(--lws-glass-shadow);
-    padding: 24px 18px;
-  }
-}
-
-/* --- voice toggle pill (sound on/off in the chat header) ---------------- */
-.lws-voice-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 11px;
-  border-radius: 999px;
-  border: 1px solid var(--lws-glass-border);
-  background: var(--lws-tint, rgba(200, 150, 90, 0.1));
-  color: var(--lws-body);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.15s ease;
-}
-.lws-voice-toggle:hover { transform: translateY(-1px); opacity: 0.9; }
-.lws-voice-toggle[aria-pressed='false'] { opacity: 0.6; }
-.lws-voice-toggle:focus-visible { outline: 2px solid var(--lws-primary); outline-offset: 2px; }
-
-/* --- voice control bar (mute + transport + sliders) --------------------- */
+/* --- voice control bar (transport + sliders) ---------------------------- */
 .lws-voice-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 .lws-voice-transport {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--lws-glass-border);
-  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
 }
 .lws-voice-btn {
   display: inline-flex;
@@ -696,16 +127,16 @@ h1, h2, h3, h4 {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 8px;
+  border-radius: 7px;
   border: none;
-  background: var(--lws-tint);
-  color: var(--lws-primary);
+  background: #fffbeb;            /* amber-50 */
+  color: var(--lws-amber-dark);
   cursor: pointer;
   transition: background 0.15s ease, transform 0.15s ease;
 }
-.lws-voice-btn:hover:not(:disabled) { background: rgba(244, 145, 26, 0.18); transform: translateY(-1px); }
+.lws-voice-btn:hover:not(:disabled) { background: #fef3c7; transform: translateY(-1px); }
 .lws-voice-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.lws-voice-btn:focus-visible { outline: 2px solid var(--lws-primary); outline-offset: 1px; }
+.lws-voice-btn:focus-visible { outline: 2px solid var(--lws-amber); outline-offset: 1px; }
 
 .lws-voice-slider {
   display: inline-flex;
@@ -713,15 +144,14 @@ h1, h2, h3, h4 {
   gap: 5px;
   font-size: 10px;
   font-weight: 600;
-  color: var(--lws-gray);
+  color: #64748b; /* slate-500 */
 }
-.lws-voice-slider-label { letter-spacing: 0.3px; }
 .lws-voice-slider input[type='range'] {
-  width: 64px;
+  width: 56px;
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(200, 150, 90, 0.25);
+  background: #e2e8f0;
   border-radius: 999px;
   outline: none;
   cursor: pointer;
@@ -732,7 +162,7 @@ h1, h2, h3, h4 {
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background: var(--lws-primary);
+  background: var(--lws-amber);
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
@@ -740,15 +170,8 @@ h1, h2, h3, h4 {
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background: var(--lws-primary);
+  background: var(--lws-amber);
   border: 2px solid #fff;
-}
-.lws-voice-now {
-  max-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--lws-gray);
 }
 
 /* Small spinner shown while a TTS clip is being generated. */
@@ -756,8 +179,8 @@ h1, h2, h3, h4 {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid rgba(244, 145, 26, 0.25);
-  border-top-color: var(--lws-primary);
+  border: 2px solid #fef3c7;
+  border-top-color: var(--lws-amber);
   animation: lwsSpin 0.7s linear infinite;
   display: inline-block;
 }
@@ -769,8 +192,8 @@ h1, h2, h3, h4 {
   border-radius: 50%;
   border-width: 3px;
   border-style: solid;
-  border-color: rgba(244, 145, 26, 0.22);
-  border-top-color: var(--lws-primary);
+  border-color: #fef3c7;
+  border-top-color: var(--lws-amber);
   animation: lwsSpin 0.7s linear infinite;
 }
 .lws-spinner-block {
@@ -781,7 +204,7 @@ h1, h2, h3, h4 {
   gap: 14px;
   padding: 40px 20px;
 }
-.lws-spinner-label { color: var(--lws-gray); font-weight: 600; }
+.lws-spinner-label { color: #64748b; font-weight: 600; }
 
 /* --- full-screen centered loader (initial app load) --------------------- */
 .lws-full-loader {
@@ -793,18 +216,13 @@ h1, h2, h3, h4 {
   align-items: center;
   justify-content: center;
   gap: 18px;
-  background: var(--lws-bg);
+  background: #f8fafc;
 }
 
 /* --- skeleton placeholder (shimmer) for loading lists ------------------- */
 .lws-skeleton {
   display: inline-block;
-  background: linear-gradient(
-    90deg,
-    rgba(200, 150, 90, 0.08) 25%,
-    rgba(200, 150, 90, 0.18) 37%,
-    rgba(200, 150, 90, 0.08) 63%
-  );
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
   background-size: 400% 100%;
   border-radius: 6px;
   animation: lwsSkeletonShimmer 1.4s ease infinite;
@@ -834,16 +252,105 @@ h1, h2, h3, h4 {
   font-weight: 600;
   color: #fff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  animation: lwsToastIn 0.25s var(--lws-ease);
+  animation: lwsToastIn 0.25s ease;
 }
 .lws-toast-error   { background: var(--lws-danger); }
-.lws-toast-info    { background: var(--lws-secondary); }
+.lws-toast-info    { background: #1e293b; }
 .lws-toast-success { background: var(--lws-success); }
 @keyframes lwsToastIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* --- mobile sessions drawer --------------------------------------------- */
+.lws-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  animation: lwsFadeIn 0.2s ease;
+}
+.lws-drawer {
+  width: min(86vw, 340px);
+  height: 100%;
+  background: #fff;
+  border-right: 1px solid #e2e8f0;
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  animation: lwsDrawerIn 0.25s ease;
+}
+@keyframes lwsDrawerIn {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes lwsFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.lws-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* --- responsive helpers ------------------------------------------------- */
+.lws-hide-below-lg { display: inherit; }
+.lws-show-below-lg { display: none !important; }
+.lws-hide-below-sm { display: inherit; }
+.lws-show-below-sm { display: none !important; }
+@media (max-width: 1023px) {
+  .lws-hide-below-lg { display: none !important; }
+  .lws-show-below-lg { display: inline-flex !important; }
+}
+@media (max-width: 639px) {
+  .lws-hide-below-sm { display: none !important; }
+  .lws-show-below-sm { display: inline !important; }
+}
+
+/* --- landing mobile legibility ------------------------------------------ */
+/* Below lg, Sasha renders full-screen behind the landing text. Wrap the text
+   in a translucent white card so it stays readable over the character. */
+@media (max-width: 1023px) {
+  .lws-landing-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    padding: 24px 18px;
+  }
+}
+
+/* --- markdown (rendered by src/lib/markdown.tsx) ------------------------ */
+/* Keep model output readable inside chat bubbles. */
+.lws-markdown p { margin: 0 0 0.5em 0; }
+.lws-markdown p:last-child { margin-bottom: 0; }
+.lws-markdown ul { list-style: disc inside; margin: 0.5em 0; }
+.lws-markdown ol { list-style: decimal inside; margin: 0.5em 0; }
+.lws-markdown li { margin: 0.15em 0; }
+.lws-markdown strong { font-weight: 700; }
+.lws-markdown em { font-style: italic; }
+.lws-markdown pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 0.5em 0;
+  font-size: 12px;
+}
+.lws-markdown code {
+  background: #f1f5f9;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.lws-markdown pre code { background: transparent; padding: 0; }
 
 /* --- accessibility: respect reduced-motion ------------------------------ */
 @media (prefers-reduced-motion: reduce) {
@@ -853,5 +360,4 @@ h1, h2, h3, h4 {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .lws-fade-in-up { opacity: 1; transform: none; }
 }

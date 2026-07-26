@@ -178,9 +178,9 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
     // Smoothed pose values so mode/mood changes glide instead of snapping.
     const curPos = new THREE.Vector3(0, 0, 0);
     const curScale = new THREE.Vector3(baseScale, baseScale, baseScale);
-    let curRotY = 0;
-    let curRotZ = 0;
-    let shakeUntil = 0;
+    let curRotX = 0; // pitch (lean forward/back, look down/up)
+    let curRotY = 0; // yaw
+    let curRotZ = 0; // roll (head tilt)
 
     function animate() {
       animId = requestAnimationFrame(animate);
@@ -202,6 +202,7 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       // The pose we ease toward this frame.
       const targetPos = new THREE.Vector3();
       let targetScaleNum = baseScale;
+      let targetRotX = 0; // base pitch tracks cursor Y subtly
       let targetRotY = mouseX * 0.18;
       let targetRotZ = 0;
 
@@ -242,26 +243,49 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       }
 
       // --- mood overlays ------------------------------------------------
+      // All motion here is SAFE whole-model transform only — we never touch the
+      // Head sub-mesh (its authored transform places the head correctly).
       if (currentMode !== 'hidden') {
         const amp = getVoiceAmplitude(); // 0..1 while speaking, else 0
+
+        // TALKING — gentle rhythmic sway + bob keyed to live audio amplitude.
         if (currentMood === 'talking' || amp > 0.02) {
-          // Talk effect: SAFE whole-model motion only (never touch the Head
-          // sub-mesh — its authored transform places the head correctly, and
-          // editing it is what previously pulled the head out of place). We
-          // add a tiny yaw wobble + vertical bob from the audio amplitude so
-          // Sasha reads as "speaking" without breaking the rig.
           targetRotY += Math.sin(elapsed * 9) * amp * 0.05;
+          targetRotZ += Math.sin(elapsed * 7.5) * amp * 0.02;
           targetPos.y += amp * 0.02;
         }
 
+        // Per-mood motion. Each layered on top of the base cursor-tracking
+        // pose above, so she still follows the mouse while expressing.
         if (currentMood === 'wave') {
+          // Friendly wave: rhythmic roll.
           targetRotZ = Math.sin(elapsed * 6) * 0.12;
         } else if (currentMood === 'thinking') {
-          targetRotY += Math.sin(elapsed * 1.2) * 0.03;
+          // Deep-in-thought: head tilts, gazes down, paced contemplative sway,
+          // occasional slow nod. "Excessive" enough to read clearly while a
+          // lesson is generating (a long operation).
+          targetRotZ = 0.12 + Math.sin(elapsed * 1.1) * 0.05; // tilted head
+          targetRotX = 0.18; // look down toward her thoughts
+          targetRotY += Math.sin(elapsed * 0.8) * 0.08; // slow contemplative scan
+          // Slow nod every ~2.5s.
+          targetRotX += Math.max(0, Math.sin(elapsed * 2.5)) * 0.06;
+          // Subtle rise as if mulling.
+          targetPos.y += Math.sin(elapsed * 1.4) * 0.015;
+        } else if (currentMood === 'attentive') {
+          // The user is typing a question. Sasha leans forward and gazes down
+          // toward the typebar (positive pitch = look down), with sharper
+          // cursor tracking so her gaze follows the question.
+          targetRotX = 0.12; // lean/gaze toward the input
+          targetRotY += mouseX * 0.12; // track the cursor more strongly
+          // Tiny expectant bob.
+          targetPos.y += Math.sin(elapsed * 2.2) * 0.01;
         } else if (currentMood === 'celebrate') {
+          // Lesson ready: happy hop.
           targetPos.y += Math.abs(Math.sin(elapsed * 8)) * 0.08;
-        } else if (currentMood === 'shake' && elapsed < shakeUntil) {
-          targetPos.x += Math.sin(elapsed * 40) * 0.05;
+          targetRotZ = Math.sin(elapsed * 5) * 0.06;
+        } else if (currentMood === 'shake') {
+          // Gentle no-shake on an error.
+          targetRotY += Math.sin(elapsed * 18) * 0.08;
         }
       }
 
@@ -269,6 +293,7 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       const easeK = Math.min(delta * 5, 1);
       curPos.lerp(targetPos, easeK);
       curScale.lerp(new THREE.Vector3(targetScaleNum, targetScaleNum, targetScaleNum), easeK);
+      curRotX += (targetRotX - curRotX) * easeK;
       curRotY += (targetRotY - curRotY) * easeK;
       curRotZ += (targetRotZ - curRotZ) * easeK;
       opacity += (targetOpacity - opacity) * Math.min(delta * 5, 1);
@@ -279,7 +304,9 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
         model.position.y += breathe;
         model.scale.copy(curScale);
         model.rotation.y = curRotY;
-        model.rotation.x = mouseY * 0.05;
+        // Pitch is the mood-driven lean/gaze (curRotX) plus a whisper of cursor
+        // tracking so idle feels alive.
+        model.rotation.x = curRotX + mouseY * 0.04;
         model.rotation.z = curRotZ;
 
         model.traverse((child: THREE.Object3D) => {

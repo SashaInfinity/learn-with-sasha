@@ -106,28 +106,40 @@ export const api = {
   chat: (
     sessionId: number,
     message: string,
-    context: { name: string; topic: string; interests: string },
+    context: { name: string; topic: string; interests: string; language: string },
   ) =>
     request<{ reply: string }>('/api/chat', {
       method: 'POST',
       body: JSON.stringify({ sessionId, message, context }),
     }),
 
+  // --- append a message to a session WITHOUT invoking Gemini (e.g. a
+  //     generated lesson dropped in as a model turn) ---
+  appendMessage: (
+    sessionId: number,
+    args: { role: 'user' | 'model'; text: string; title?: string },
+  ) =>
+    request<{ ok: true }>(`/api/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(args),
+    }),
+
   // --- simplify ---
-  simplify: (text: string) =>
+  simplify: (text: string, language = 'English') =>
     request<{ reply: string }>('/api/simplify', {
       method: 'POST',
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, language }),
     }),
 
   // --- solver (session-scoped) ---
   solve: (
     sessionId: number,
     args: { problemText?: string; image?: { base64: string; mimeType: string } },
+    language = 'English',
   ) =>
     request<SolveResult>('/api/solve', {
       method: 'POST',
-      body: JSON.stringify({ sessionId, ...args }),
+      body: JSON.stringify({ sessionId, language, ...args }),
     }),
 
   // --- history (legacy, kind-filtered) ---

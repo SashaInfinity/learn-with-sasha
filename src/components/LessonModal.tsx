@@ -13,6 +13,8 @@ import Modal from './Modal';
 import Spinner from './Spinner';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { useVoice } from '../context/VoiceContext';
+import { useToast } from '../context/ToastContext';
 import type { Preferences } from '../types';
 import { BookOpenIcon } from './IconComponents';
 
@@ -25,6 +27,8 @@ interface LessonModalProps {
 
 export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalProps) {
   const { user } = useAuth();
+  const { setMood } = useVoice();
+  const { toast } = useToast();
   const [topic, setTopic] = useState('');
   const [interests, setInterests] = useState('');
   const [language, setLanguage] = useState('English');
@@ -58,6 +62,8 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
     if (!topic.trim() || busy) return;
     setBusy(true);
     setError(null);
+    // Sasha thinks hard while the lesson is being generated (long operation).
+    setMood('thinking');
     try {
       const name = user?.display_name ?? 'there';
       const result = await api.generateLesson({
@@ -100,7 +106,10 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
       setTopic('');
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to generate lesson');
+      const msg = e instanceof Error ? e.message : 'Failed to generate lesson';
+      setError(msg);
+      toast(`Couldn't generate the lesson: ${msg}`, 'error');
+      setMood('idle'); // reset thinking mood on failure
     } finally {
       setBusy(false);
     }

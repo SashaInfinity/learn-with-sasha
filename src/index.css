@@ -34,6 +34,11 @@
   --lws-success-rgb: 67, 200, 130;
   --lws-danger: #e5484d;
   --lws-danger-rgb: 229, 72, 77;
+
+  /* Sticky header height — kept in sync with the rendered header (logo + py-3
+     + sign-out button). Consumed by .lws-chat-shell padding and the chat-body
+     height calc so the sidebar can never slide under the header. */
+  --lws-header-h: 64px;
 }
 
 body {
@@ -352,14 +357,19 @@ h1, h2, h3, h4 {
   width: 100%;
   padding: 13px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(140, 130, 200, 0.2);
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(140, 130, 200, 0.3);
+  /* Opaque white (was translucent 0.6) so the field stays legible over dark
+     modal panels and any background. Previously the translucent bg blended
+     into the dark modal backdrop, making the placeholder near-invisible. */
+  background: #ffffff;
   color: var(--lws-dark);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   transition: all 0.3s var(--lws-ease);
 }
-.lws-field::placeholder { color: var(--lws-gray-light); }
+/* Darker placeholder for WCAG-AA contrast on white (4.83:1). Was --lws-gray-
+   light (#9ca3af) which failed at 2.54:1 on white and ~1:1 on the old tint. */
+.lws-field::placeholder { color: #6b7280; }
 .lws-field:focus {
   outline: none;
   background: #fff;
@@ -498,9 +508,34 @@ h1, h2, h3, h4 {
 .lws-icon-btn:focus-visible { outline: 2px solid var(--lws-primary); outline-offset: 2px; }
 
 /* --- chat shell (sidebar + chat, responsive) ---------------------------- */
-/* The shell sits below the sticky header. On short mobile viewports we want
-   the chat to fill the screen rather than scrolling inside a fixed 72vh box. */
-.lws-chat-shell { padding-bottom: 0; }
+/* The chat shell sits below the FIXED header. The padding-top reserves the
+   header's height so the sidebar can never slide under it. */
+.lws-chat-shell { padding-bottom: 0; padding-top: var(--lws-header-h); }
+
+/* Generic page wrapper (referenced by ChatHome's root; was previously
+   undefined). Adds breathing room below the fixed header. */
+.lws-page { padding-bottom: 32px; }
+
+/* --- brand wordmark + logo (header) ------------------------------------- */
+.lws-brand {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+.lws-brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.lws-landing-logo {
+  border-radius: 14px;
+  object-fit: contain;
+  box-shadow: var(--lws-glass-shadow);
+}
 
 .lws-chat-toolbar {
   display: flex;
@@ -515,8 +550,8 @@ h1, h2, h3, h4 {
   display: grid;
   grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   gap: 16px;
-  /* Fill the viewport below the sticky header (~56px) + toolbar. */
-  height: calc(100vh - 140px);
+  /* Fill the viewport below the fixed header + toolbar (~60px). */
+  height: calc(100vh - var(--lws-header-h) - 60px);
   min-height: 480px;
 }
 .lws-sidebar-desktop { min-height: 0; }
@@ -527,8 +562,8 @@ h1, h2, h3, h4 {
 @media (max-width: 1023px) {
   .lws-chat-body {
     grid-template-columns: minmax(0, 1fr);
-    /* A bit taller since there's no dock row eating height. */
-    height: calc(100vh - 130px);
+    /* Mobile toolbar is shorter (~52px). */
+    height: calc(100vh - var(--lws-header-h) - 52px);
   }
 }
 
@@ -748,6 +783,37 @@ h1, h2, h3, h4 {
 @keyframes lwsSkeletonShimmer {
   0% { background-position: 100% 50%; }
   100% { background-position: 0 50%; }
+}
+
+/* --- toasts (transient errors/status) ----------------------------------- */
+.lws-toast-stack {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.lws-toast {
+  pointer-events: auto;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  animation: lwsToastIn 0.25s var(--lws-ease);
+}
+.lws-toast-error   { background: var(--lws-danger); }
+.lws-toast-info    { background: var(--lws-secondary); }
+.lws-toast-success { background: var(--lws-success); }
+@keyframes lwsToastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* --- accessibility: respect reduced-motion ------------------------------ */

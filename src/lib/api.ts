@@ -12,6 +12,8 @@ import type {
   QuizQuestion,
   SolveResult,
   ChatHistoryEntry,
+  ChatKind,
+  SessionSummary,
 } from '../types';
 
 const BASE = ''; // same origin; nginx proxies /auth and /api to the backend
@@ -80,11 +82,35 @@ export const api = {
   listLessons: () => request<{ lessons: SavedLesson[] }>('/api/lessons'),
   getLesson: (id: number) => request<{ lesson: SavedLesson }>(`/api/lessons/${id}`),
 
-  // --- chat ---
-  chat: (message: string, context: { name: string; topic: string; interests: string }) =>
+  // --- sessions (the sidebar list + replay) ---
+  listSessions: () => request<{ sessions: SessionSummary[] }>('/api/sessions'),
+  createSession: (kind?: ChatKind, title?: string) =>
+    request<{ session: { id: number; kind: ChatKind; title: string } }>('/api/sessions', {
+      method: 'POST',
+      body: JSON.stringify({ kind, title }),
+    }),
+  getSession: (id: number) =>
+    request<{
+      session: { id: number; kind: ChatKind };
+      messages: ChatHistoryEntry[];
+    }>(`/api/sessions/${id}`),
+  patchSession: (id: number, title: string) =>
+    request<{ ok: true }>(`/api/sessions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title }),
+    }),
+  deleteSession: (id: number) =>
+    request<{ ok: true }>(`/api/sessions/${id}`, { method: 'DELETE' }),
+
+  // --- chat (session-scoped) ---
+  chat: (
+    sessionId: number,
+    message: string,
+    context: { name: string; topic: string; interests: string },
+  ) =>
     request<{ reply: string }>('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ message, context }),
+      body: JSON.stringify({ sessionId, message, context }),
     }),
 
   // --- simplify ---
@@ -94,19 +120,20 @@ export const api = {
       body: JSON.stringify({ text }),
     }),
 
-  // --- solver ---
-  solve: (args: { problemText?: string; image?: { base64: string; mimeType: string } }) =>
+  // --- solver (session-scoped) ---
+  solve: (
+    sessionId: number,
+    args: { problemText?: string; image?: { base64: string; mimeType: string } },
+  ) =>
     request<SolveResult>('/api/solve', {
       method: 'POST',
-      body: JSON.stringify(args),
+      body: JSON.stringify({ sessionId, ...args }),
     }),
 
-  // --- history ---
-  getHistory: (kind?: 'lesson' | 'solver' | 'chat') =>
-    request<{ history: ChatHistoryEntry[] }>(
-      `/api/history${kind ? `?kind=${kind}` : ''}`,
-    ),
-  clearHistory: (kind?: 'lesson' | 'solver' | 'chat') =>
+  // --- history (legacy, kind-filtered) ---
+  getHistory: (kind?: ChatKind) =>
+    request<{ history: ChatHistoryEntry[] }>(`/api/history${kind ? `?kind=${kind}` : ''}`),
+  clearHistory: (kind?: ChatKind) =>
     request<{ ok: true }>(`/api/history${kind ? `?kind=${kind}` : ''}`, {
       method: 'DELETE',
     }),

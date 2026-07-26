@@ -7,6 +7,8 @@ export interface Message {
   role: Role;
   text: string;
   image?: string;
+  /** Solver responses surface the final answer separately for emphasis. */
+  finalAnswer?: string;
 }
 
 export enum LearningState {
@@ -72,4 +74,14 @@ export interface SolveResult {
   steps: string;
   finalAnswer: string;
   reply: string;
+}
+
+export type ChatKind = 'lesson' | 'solver' | 'chat';
+
+/** A conversation in the sidebar. Clicking one replays its messages. */
+export interface SessionSummary {
+  id: number;
+  title: string;
+  kind: ChatKind;
+  updatedAt: string;
 }

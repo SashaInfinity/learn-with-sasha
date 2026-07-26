@@ -32,13 +32,28 @@ CREATE TABLE IF NOT EXISTS learn_lessons (
 );
 CREATE INDEX IF NOT EXISTS idx_learn_lessons_user ON learn_lessons(user_id, created_at DESC);
 
+-- --- learn_sessions -------------------------------------------------------
+-- A conversation (chat / solver / lesson). The sidebar lists these; clicking
+-- one replays its messages from learn_chat_history.
+CREATE TABLE IF NOT EXISTS learn_sessions (
+    id         SERIAL PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title      TEXT    NOT NULL DEFAULT 'New chat',
+    kind       TEXT    NOT NULL DEFAULT 'chat'
+               CHECK (kind IN ('lesson','solver','chat')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_learn_sessions_user ON learn_sessions(user_id, updated_at DESC);
+
 -- --- learn_chat_history ---------------------------------------------------
--- Every message exchanged (lessons, solver, free chat). `kind` distinguishes
--- the conversation the message belongs to ('lesson' | 'solver' | 'chat').
+-- Every message exchanged. Belongs to a session (session_id). `kind` is kept
+-- for back-compat/filters; it mirrors the parent session's kind.
 -- `image_base64` is nullable (only solver photo uploads include one).
 CREATE TABLE IF NOT EXISTS learn_chat_history (
     id           SERIAL PRIMARY KEY,
     user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    session_id   INTEGER REFERENCES learn_sessions(id) ON DELETE CASCADE,
     kind         TEXT    NOT NULL DEFAULT 'chat'
                  CHECK (kind IN ('lesson','solver','chat')),
     role         TEXT    NOT NULL CHECK (role IN ('user','model')),
@@ -48,4 +63,23 @@ CREATE TABLE IF NOT EXISTS learn_chat_history (
 );
 CREATE INDEX IF NOT EXISTS idx_learn_chat_user_kind ON learn_chat_history(user_id, kind, created_at DESC);
 
+-- Backfill session_id column onto the chat-history table if it predates this
+-- migration (the table existed before sessions were introduced). The
+-- session_id index is created here too, after the column is guaranteed to
+-- exist. Idempotent.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'learn_chat_history'
+          AND column_name = 'session_id'
+    ) THEN
+        ALTER TABLE learn_chat_history
+          ADD COLUMN session_id INTEGER REFERENCES learn_sessions(id) ON DELETE CASCADE;
+    END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS idx_learn_chat_session ON learn_chat_history(session_id, created_at ASC);
+
 COMMIT;
+

@@ -7,20 +7,119 @@ import type { LessonContent, QuizQuestion } from './gemini.js';
 
 export type ChatKind = 'lesson' | 'solver' | 'chat';
 
+// --- sessions -------------------------------------------------------------
+
+export interface SessionSummary {
+  id: number;
+  title: string;
+  kind: ChatKind;
+  updatedAt: string;
+}
+
+export async function listSessions(userId: number): Promise<SessionSummary[]> {
+  const { rows } = await pool.query(
+    `SELECT id, title, kind, updated_at AS "updatedAt"
+       FROM learn_sessions
+      WHERE user_id = $1
+      ORDER BY updated_at DESC`,
+    [userId],
+  );
+  return rows as SessionSummary[];
+}
+
+export async function createSession(args: {
+  userId: number;
+  kind?: ChatKind;
+  title?: string;
+}): Promise<{ id: number; kind: ChatKind; title: string }> {
+  const kind = args.kind ?? 'chat';
+  const title = args.title ?? 'New chat';
+  const { rows } = await pool.query(
+    `INSERT INTO learn_sessions (user_id, kind, title)
+     VALUES ($1, $2, $3)
+     RETURNING id, kind, title`,
+    [args.userId, kind, title],
+  );
+  return rows[0];
+}
+
+export async function patchSession(
+  userId: number,
+  sessionId: number,
+  patch: { title?: string },
+): Promise<void> {
+  if (patch.title !== undefined) {
+    await pool.query(
+      `UPDATE learn_sessions SET title = $1, updated_at = now()
+        WHERE id = $2 AND user_id = $3`,
+      [patch.title, sessionId, userId],
+    );
+  } else {
+    await pool.query(
+      `UPDATE learn_sessions SET updated_at = now() WHERE id = $1 AND user_id = $2`,
+      [sessionId, userId],
+    );
+  }
+}
+
+export async function deleteSession(userId: number, sessionId: number): Promise<void> {
+  // ON DELETE CASCADE removes the session's messages automatically.
+  await pool.query('DELETE FROM learn_sessions WHERE id = $1 AND user_id = $2', [
+    sessionId,
+    userId,
+  ]);
+}
+
+export async function getSessionKind(
+  userId: number,
+  sessionId: number,
+): Promise<ChatKind | null> {
+  const { rows } = await pool.query(
+    'SELECT kind FROM learn_sessions WHERE id = $1 AND user_id = $2',
+    [sessionId, userId],
+  );
+  return (rows[0]?.kind as ChatKind | undefined) ?? null;
+}
+
 // --- chat history ---------------------------------------------------------
 
 export async function addMessage(args: {
   userId: number;
+  sessionId?: number | null;
   kind: ChatKind;
   role: 'user' | 'model';
   text: string;
   imageBase64?: string | null;
 }) {
   await pool.query(
-    `INSERT INTO learn_chat_history (user_id, kind, role, text, image_base64)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [args.userId, args.kind, args.role, args.text, args.imageBase64 ?? null],
+    `INSERT INTO learn_chat_history (user_id, session_id, kind, role, text, image_base64)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [
+      args.userId,
+      args.sessionId ?? null,
+      args.kind,
+      args.role,
+      args.text,
+      args.imageBase64 ?? null,
+    ],
   );
+}
+
+/** A session's full message thread, oldest first. */
+export async function getSessionMessages(
+  userId: number,
+  sessionId: number,
+): Promise<
+  Array<{ role: 'user' | 'model'; text: string; imageBase64: string | null; createdAt: string }>
+> {
+  const { rows } = await pool.query(
+    `SELECT role, text, image_base64 AS "imageBase64", created_at AS "createdAt"
+       FROM learn_chat_history
+      WHERE session_id = $1 AND user_id = $2
+      ORDER BY created_at ASC`,
+    [sessionId, userId],
+  );
+  return rows;
 }
 
 export async function getHistory(userId: number, kind?: ChatKind, limit = 50) {
@@ -134,3 +233,4 @@ export async function getLesson(userId: number, lessonId: number) {
     createdAt: string;
   } | null;
 }
+

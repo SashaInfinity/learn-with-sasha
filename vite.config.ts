@@ -23,6 +23,19 @@ export default defineConfig(() => {
         alias: {
           '@': path.resolve(__dirname, 'src'),
         }
+      },
+      build: {
+        // Split heavy deps into their own long-cacheable chunks so app-code
+        // changes don't invalidate the vendor cache. three.js (~600KB) is by
+        // far the largest dependency, so it gets its own chunk.
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              three: ['three'],
+              react: ['react', 'react-dom'],
+            },
+          },
+        },
       }
     };
 });

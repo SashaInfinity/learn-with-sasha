@@ -16,6 +16,7 @@ import {
   solveProblem,
   type LessonResult,
 } from '../lib/gemini.js';
+import { synthesize } from '../lib/tts.js';
 import {
   addMessage,
   getHistory,
@@ -247,6 +248,29 @@ apiRouter.post('/simplify', async (req, res) => {
   } catch (err) {
     console.error('[api/simplify] error:', err);
     res.status(500).json({ error: 'Failed to simplify' });
+  }
+});
+
+// --- text-to-speech (local Piper) ----------------------------------------
+
+const TtsSchema = z.object({
+  text: z.string().min(1).max(500),
+});
+
+apiRouter.post('/tts', async (req, res) => {
+  const parsed = TtsSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid request', details: parsed.error.flatten() });
+    return;
+  }
+  try {
+    const wav = await synthesize(parsed.data.text);
+    res.setHeader('Content-Type', 'audio/wav');
+    res.setHeader('Cache-Control', 'private, max-age=86400');
+    res.send(wav);
+  } catch (err) {
+    console.error('[api/tts] error:', err);
+    res.status(503).json({ error: 'Voice synthesis unavailable' });
   }
 });
 

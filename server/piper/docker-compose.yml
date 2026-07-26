@@ -1,0 +1,16 @@
+# Piper TTS service for learn-with-sasha.
+# OpenAI-compatible POST /v1/audio/speech endpoint. CPU-only. Auto-downloads
+# Piper voices from HuggingFace on first use and caches them in ./data.
+# Bound to 127.0.0.1 only — never public; the backend proxies it.
+services:
+  piper:
+    image: kamilkrawiec/piper-openai-tts
+    container_name: learn-piper
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      PORT: "5000"
+      DATA_DIR: "/data"
+    volumes:
+      - ./data:/data

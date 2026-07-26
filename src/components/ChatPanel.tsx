@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Role, type Message } from '../types';
 import { useVoice } from '../context/VoiceContext';
 import { SendIcon, SparklesIcon, MagicWandIcon, SpeakerIcon } from './IconComponents';
+import VoiceControlPanel from './VoiceControlPanel';
 import { Markdown } from '../lib/markdown';
 
 const SashaAvatar = () => (
@@ -144,7 +145,7 @@ export default function ChatPanel({
   starters = DEFAULT_STARTERS,
   placeholder = 'Type your question…',
 }: ChatPanelProps) {
-  const { speak, muted, setMuted } = useVoice();
+  const { speak, muted } = useVoice();
   const [input, setInput] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
   // Track the last message we auto-spoke so we don't replay on re-renders.
@@ -180,16 +181,9 @@ export default function ChatPanel({
 
   return (
     <div className="lws-panel flex h-full flex-col p-5">
-      {/* Header row: sound on/off pill. */}
+      {/* Header row: voice controls (mute + transport + sliders). */}
       <div className="mb-3 flex items-center justify-end">
-        <button
-          onClick={() => setMuted(!muted)}
-          className="lws-voice-toggle"
-          aria-pressed={!muted}
-          title={muted ? 'Voice is off' : 'Voice is on'}
-        >
-          {muted ? '🔇 Voice off' : '🔊 Voice on'}
-        </button>
+        <VoiceControlPanel />
       </div>
       <div className="mb-4 flex-grow overflow-y-auto pr-1" role="log" aria-live="polite" aria-label="Conversation with Sasha">
         {messages.length === 0 && !isThinking && (

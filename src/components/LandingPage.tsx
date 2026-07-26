@@ -29,11 +29,13 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
   return (
     <div className="lws-container relative flex min-h-screen flex-col items-center justify-center py-16">
       {/* Sasha floats centre-stage behind this content (z-index 2); the text
-          columns sit on either side of her on desktop. */}
-      <div className="grid w-full max-w-6xl grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_auto_1fr]">
+          columns sit on either side of her on desktop. On mobile she's full-
+          screen behind, so the text needs a translucent backdrop to stay
+          legible — handled by .lws-landing-card below lg. */}
+      <div className="lws-landing-card grid w-full max-w-6xl grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_auto_1fr]">
         <div className="lws-fade-in-up text-center lg:text-right">
           <span className="lws-label-tag lg:justify-end">AI Math Tutor</span>
-          <h1 className="lws-h1" style={{ fontSize: 'clamp(40px, 7vw, 68px)' }}>
+          <h1 className="lws-h1" style={{ fontSize: 'clamp(34px, 7vw, 68px)' }}>
             Learn
             <br />
             With Sasha

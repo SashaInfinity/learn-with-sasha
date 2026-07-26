@@ -15,6 +15,7 @@ import LandingPage from './LandingPage';
 import AuthScreen from './AuthScreen';
 import ChatHome from './ChatHome';
 import SashaStage, { type StageMode } from './SashaStage';
+import Spinner from './Spinner';
 
 export default function AppShell() {
   const { user, loading, logout } = useAuth();
@@ -44,6 +45,12 @@ export default function AppShell() {
     return (
       <div className="lws-root">
         <SashaStage mode="hidden" />
+        <div className="lws-full-loader">
+          <Spinner size="lg" />
+          <p className="lws-h3" style={{ color: 'var(--lws-primary)' }}>
+            Learn With Sasha
+          </p>
+        </div>
       </div>
     );
   }

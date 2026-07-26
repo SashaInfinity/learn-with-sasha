@@ -60,7 +60,17 @@ export default function Sidebar({
 
       <div className="flex-grow overflow-y-auto pr-1">
         {loading ? (
-          <p className="lws-small px-2 py-4 text-center">Loading…</p>
+          <ul className="space-y-1" aria-label="Loading conversations">
+            {[0, 1, 2, 3].map((i) => (
+              <li key={i} className="flex items-center gap-2 px-3 py-2.5">
+                <span className="lws-skeleton" style={{ width: 28, height: 28, borderRadius: 8 }} />
+                <span className="flex-grow space-y-1.5">
+                  <span className="lws-skeleton" style={{ display: 'block', height: 10, width: '70%' }} />
+                  <span className="lws-skeleton" style={{ display: 'block', height: 8, width: '40%' }} />
+                </span>
+              </li>
+            ))}
+          </ul>
         ) : sessions.length === 0 ? (
           <p className="lws-small px-2 py-8 text-center" style={{ color: 'var(--lws-gray-light)' }}>
             No conversations yet.

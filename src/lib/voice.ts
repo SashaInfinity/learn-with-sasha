@@ -5,6 +5,11 @@
  * through a Web Audio AnalyserNode so the 3D stage can drive Sasha's talk
  * animation from the live amplitude.
  *
+ * Exposed controls (besides speak/stop):
+ *   - mute / unmute
+ *   - pause / resume (the current clip)
+ *   - rate (0.75–1.5) and volume (0–1) — applied live and remembered
+ *
  * This is a singleton (module-level) so the audio graph persists across route
  * changes; React reads its state via VoiceContext.
  */
@@ -20,7 +25,13 @@ class VoiceManager {
 
   private muted = false;
   private speaking = false;
+  private fetching = false; // true while a TTS clip is being requested
   private amplitude = 0; // 0..1, smoothed RMS of the current frame
+  private speakingText = ''; // the text currently being spoken (for the UI)
+
+  // Live-adjustable playback params.
+  private rate = 1;
+  private volume = 1;
 
   private listeners = new Set<Listener>();
 
@@ -30,8 +41,20 @@ class VoiceManager {
   isSpeaking() {
     return this.speaking;
   }
+  isFetching() {
+    return this.fetching;
+  }
   getAmplitude() {
     return this.amplitude;
+  }
+  getSpeakingText() {
+    return this.speakingText;
+  }
+  getRate() {
+    return this.rate;
+  }
+  getVolume() {
+    return this.volume;
   }
 
   subscribe(fn: Listener): () => void {
@@ -48,25 +71,47 @@ class VoiceManager {
     this.emit();
   }
 
+  setRate(rate: number) {
+    this.rate = Math.min(1.5, Math.max(0.75, rate));
+    if (this.audio) this.audio.playbackRate = this.rate;
+    this.emit();
+  }
+
+  setVolume(volume: number) {
+    this.volume = Math.min(1, Math.max(0, volume));
+    if (this.audio) this.audio.volume = this.volume;
+    this.emit();
+  }
+
   /** Speak the given text. Interrupts any current playback. No-op if muted. */
   async speak(text: string): Promise<void> {
     if (this.muted || !text.trim()) return;
     this.stop();
+    this.speakingText = text.slice(0, 500);
+    this.fetching = true;
+    this.emit();
 
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ text: text.slice(0, 500) }),
+        body: JSON.stringify({ text: this.speakingText }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        this.fetching = false;
+        this.emit();
+        return;
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
 
       const audio = new Audio(url);
       audio.crossOrigin = 'anonymous';
+      audio.playbackRate = this.rate;
+      audio.volume = this.volume;
       this.audio = audio;
+      this.fetching = false;
 
       // Lazy-init the Web Audio graph once (browsers require a user gesture
       // for AudioContext; speak() is called from a click or a reply arrival
@@ -98,6 +143,14 @@ class VoiceManager {
         this.emit();
         this.tick();
       };
+      audio.onpause = () => {
+        // A pause is only a state change if we're not also ending.
+        if (this.speaking && !this.audio?.ended) {
+          this.speaking = false;
+          this.amplitude = 0;
+          this.emit();
+        }
+      };
       audio.onended = () => {
         this.finish();
         URL.revokeObjectURL(url);
@@ -117,22 +170,45 @@ class VoiceManager {
     }
   }
 
+  /** Pause the current clip. No-op if nothing is playing. */
+  pause() {
+    if (this.audio && !this.audio.paused) {
+      this.audio.pause();
+    }
+  }
+
+  /** Resume a paused clip. */
+  resume() {
+    if (this.audio && this.audio.paused && !this.audio.ended) {
+      void this.audio.play().catch(() => {});
+    }
+  }
+
+  /** Is the current clip paused (vs playing or stopped)? */
+  isPaused() {
+    return !!this.audio && this.audio.paused && !this.audio.ended;
+  }
+
   stop() {
     if (this.audio) {
       this.audio.pause();
       this.audio.src = '';
       this.audio = null;
     }
-    if (this.speaking) {
+    if (this.speaking || this.fetching) {
       this.speaking = false;
+      this.fetching = false;
       this.amplitude = 0;
+      this.speakingText = '';
       this.emit();
     }
   }
 
   private finish() {
     this.speaking = false;
+    this.fetching = false;
     this.amplitude = 0;
+    this.speakingText = '';
     this.audio = null;
     this.emit();
   }

@@ -463,8 +463,132 @@ h1, h2, h3, h4 {
   40% { transform: scale(1); }
 }
 
+/* --- responsive helpers ------------------------------------------------- */
+/* Hidden below lg (1024px) — used for the 3D dock + desktop sidebar. */
+.lws-hide-below-lg { display: inherit; }
+.lws-show-below-lg { display: none !important; }
+/* Hidden below sm (640px) — used to shorten button labels on phones. */
+.lws-hide-below-sm { display: inherit; }
+.lws-show-below-sm { display: none !important; }
+
+@media (max-width: 1023px) {
+  .lws-hide-below-lg { display: none !important; }
+  .lws-show-below-lg { display: inline-flex !important; }
+}
+@media (max-width: 639px) {
+  .lws-hide-below-sm { display: none !important; }
+  .lws-show-below-sm { display: inline !important; }
+}
+
+/* Generic square icon button (menu / close). */
+.lws-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--lws-glass-border);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--lws-dark);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.lws-icon-btn:hover { background: var(--lws-tint); transform: translateY(-1px); }
+.lws-icon-btn:focus-visible { outline: 2px solid var(--lws-primary); outline-offset: 2px; }
+
+/* --- chat shell (sidebar + chat, responsive) ---------------------------- */
+/* The shell sits below the sticky header. On short mobile viewports we want
+   the chat to fill the screen rather than scrolling inside a fixed 72vh box. */
+.lws-chat-shell { padding-bottom: 0; }
+
+.lws-chat-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  margin-bottom: 8px;
+}
+.lws-chat-toolbar-action { margin-left: auto; }
+
+.lws-chat-body {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 16px;
+  /* Fill the viewport below the sticky header (~56px) + toolbar. */
+  height: calc(100vh - 140px);
+  min-height: 480px;
+}
+.lws-sidebar-desktop { min-height: 0; }
+.lws-chat-main { min-height: 0; }
+
+/* On lg+ the page already reserves the dock column via .lws-grid. Below lg
+   the dock is hidden, so the chat takes the full width. */
+@media (max-width: 1023px) {
+  .lws-chat-body {
+    grid-template-columns: minmax(0, 1fr);
+    /* A bit taller since there's no dock row eating height. */
+    height: calc(100vh - 130px);
+  }
+}
+
+/* --- mobile sessions drawer --------------------------------------------- */
+.lws-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(26, 26, 46, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  animation: lwsFadeInUp 0.2s ease;
+}
+.lws-drawer {
+  width: min(86vw, 340px);
+  height: 100%;
+  background: var(--lws-bg);
+  border-right: 1px solid var(--lws-glass-border);
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  animation: lwsDrawerIn 0.25s var(--lws-ease);
+}
+@keyframes lwsDrawerIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.lws-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid var(--lws-glass-border);
+}
+/* The drawer Sidebar fills the remaining height. */
+.lws-drawer > aside,
+.lws-drawer > div {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 /* --- markdown (rendered by src/lib/markdown.tsx) ------------------------ */
 .lws-root strong, .lws-panel strong, .lws-card strong { color: var(--lws-dark); font-weight: 700; }
+
+/* --- landing mobile legibility ------------------------------------------ */
+/* Below lg, Sasha renders full-screen behind the landing text. Wrap the text
+   in a translucent glass card so it stays readable over the character. */
+@media (max-width: 1023px) {
+  .lws-landing-card {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: var(--lws-glass-blur);
+    -webkit-backdrop-filter: var(--lws-glass-blur);
+    border: 1px solid var(--lws-glass-border);
+    border-radius: 24px;
+    box-shadow: var(--lws-glass-shadow);
+    padding: 24px 18px;
+  }
+}
 
 /* --- voice toggle pill (sound on/off in the chat header) ---------------- */
 .lws-voice-toggle {
@@ -484,6 +608,147 @@ h1, h2, h3, h4 {
 .lws-voice-toggle:hover { transform: translateY(-1px); opacity: 0.9; }
 .lws-voice-toggle[aria-pressed='false'] { opacity: 0.6; }
 .lws-voice-toggle:focus-visible { outline: 2px solid var(--lws-primary); outline-offset: 2px; }
+
+/* --- voice control bar (mute + transport + sliders) --------------------- */
+.lws-voice-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.lws-voice-transport {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--lws-glass-border);
+  background: rgba(255, 255, 255, 0.6);
+}
+.lws-voice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: none;
+  background: var(--lws-tint);
+  color: var(--lws-primary);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.lws-voice-btn:hover:not(:disabled) { background: rgba(244, 145, 26, 0.18); transform: translateY(-1px); }
+.lws-voice-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.lws-voice-btn:focus-visible { outline: 2px solid var(--lws-primary); outline-offset: 1px; }
+
+.lws-voice-slider {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--lws-gray);
+}
+.lws-voice-slider-label { letter-spacing: 0.3px; }
+.lws-voice-slider input[type='range'] {
+  width: 64px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(200, 150, 90, 0.25);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+.lws-voice-slider input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--lws-primary);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.lws-voice-slider input[type='range']::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--lws-primary);
+  border: 2px solid #fff;
+}
+.lws-voice-now {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--lws-gray);
+}
+
+/* Small spinner shown while a TTS clip is being generated. */
+.lws-voice-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(244, 145, 26, 0.25);
+  border-top-color: var(--lws-primary);
+  animation: lwsSpin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes lwsSpin { to { transform: rotate(360deg); } }
+
+/* --- reusable spinner (src/components/Spinner.tsx) ---------------------- */
+.lws-spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border-width: 3px;
+  border-style: solid;
+  border-color: rgba(244, 145, 26, 0.22);
+  border-top-color: var(--lws-primary);
+  animation: lwsSpin 0.7s linear infinite;
+}
+.lws-spinner-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px 20px;
+}
+.lws-spinner-label { color: var(--lws-gray); font-weight: 600; }
+
+/* --- full-screen centered loader (initial app load) --------------------- */
+.lws-full-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: var(--lws-bg);
+}
+
+/* --- skeleton placeholder (shimmer) for loading lists ------------------- */
+.lws-skeleton {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    rgba(200, 150, 90, 0.08) 25%,
+    rgba(200, 150, 90, 0.18) 37%,
+    rgba(200, 150, 90, 0.08) 63%
+  );
+  background-size: 400% 100%;
+  border-radius: 6px;
+  animation: lwsSkeletonShimmer 1.4s ease infinite;
+}
+@keyframes lwsSkeletonShimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
 
 /* --- accessibility: respect reduced-motion ------------------------------ */
 @media (prefers-reduced-motion: reduce) {

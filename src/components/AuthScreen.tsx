@@ -121,6 +121,13 @@ export default function AuthScreen() {
             )}
 
             <button type="submit" disabled={busy} className="lws-btn lws-btn-fill w-full">
+              {busy && (
+                <span
+                  className="lws-voice-spinner"
+                  aria-hidden
+                  style={{ width: 16, height: 16 }}
+                />
+              )}
               {busy ? 'Signing in…' : 'Sign In'}
             </button>
           </form>

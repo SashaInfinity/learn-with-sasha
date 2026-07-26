@@ -10,6 +10,7 @@
  */
 import { useEffect, useState } from 'react';
 import Modal from './Modal';
+import Spinner from './Spinner';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import type { Preferences } from '../types';
@@ -179,6 +180,7 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
             Cancel
           </button>
           <button type="submit" disabled={busy || !topic.trim()} className="lws-btn lws-btn-fill lws-btn-sm">
+            {busy && <Spinner size="sm" />}
             {busy ? 'Generating…' : 'Generate'}
           </button>
         </div>

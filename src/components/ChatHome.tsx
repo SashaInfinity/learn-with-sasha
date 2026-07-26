@@ -24,7 +24,7 @@ import { useVoice } from '../context/VoiceContext';
 import Sidebar from './Sidebar';
 import ChatPanel from './ChatPanel';
 import LessonModal from './LessonModal';
-import { BookOpenIcon, SparklesIcon } from './IconComponents';
+import { BookOpenIcon, SparklesIcon, MenuIcon, XIcon } from './IconComponents';
 
 const SOLVER_HINTS = [
   'What is 15% of 80?',
@@ -49,6 +49,7 @@ export default function ChatHome() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [thinking, setThinking] = useState(false);
   const [kind, setKind] = useState<ChatKind>('chat');
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [lessonOpen, setLessonOpen] = useState(false);
   // Ref so the persistence callback always writes to the right session, even
   // across re-renders where `activeId` may not have propagated.
@@ -212,10 +213,11 @@ export default function ChatHome() {
   );
 
   return (
-    <div className="lws-container lws-page">
+    <div className="lws-container lws-page lws-chat-shell">
       <div className="lws-grid">
-        {/* Dock column: the 3D Sasha character + a speech bubble. */}
-        <div className="lws-dock-col">
+        {/* Dock column: the 3D Sasha character + a speech bubble.
+            Hidden below lg (mobile/tablet) where she'd crowd the chat. */}
+        <div className="lws-dock-col lws-hide-below-lg">
           <div className="lws-bubble-slot">
             <div className="lws-bubble">
               <SparklesIcon className="lws-bubble-icon" width={17} height={17} />
@@ -232,56 +234,91 @@ export default function ChatHome() {
 
         {/* Content column: sidebar + chat. */}
         <div className="lws-content-col">
-          <div
-            className="grid gap-4"
-            style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}
-          >
-            <div
-              className="grid gap-4"
-              style={{
-                gridTemplateColumns: 'minmax(220px, 280px) minmax(0, 1fr)',
-              }}
+          {/* Action strip above the chat panel. The menu button (mobile only)
+              opens the sessions drawer. */}
+          <div className="lws-chat-toolbar">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="lws-icon-btn lws-show-below-lg"
+              aria-label="Open conversations"
             >
-              <div style={{ height: '72vh' }}>
-                <Sidebar
-                  sessions={sessions}
-                  activeId={activeId}
-                  loading={sessionsLoading}
-                  onNew={() => void newChat()}
-                  onSelect={(id) => void selectSession(id)}
-                  onDelete={(id) => void deleteSession(id)}
-                />
-              </div>
+              <MenuIcon width={18} height={18} />
+            </button>
+            <span className="lws-label-tag" style={{ margin: 0 }}>
+              {kind === 'solver' ? 'Math solver' : kind === 'lesson' ? 'Lesson' : 'Chat'}
+            </span>
+            <button
+              onClick={() => setLessonOpen(true)}
+              className="lws-btn lws-btn-ghost lws-btn-sm lws-chat-toolbar-action"
+            >
+              <BookOpenIcon width={16} height={16} />
+              <span className="lws-hide-below-sm">Generate a lesson</span>
+              <span className="lws-show-below-sm">Lesson</span>
+            </button>
+          </div>
 
-              <div className="flex flex-col" style={{ height: '72vh' }}>
-                {/* Action strip above the chat panel. */}
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="lws-label-tag" style={{ margin: 0 }}>
-                    {kind === 'solver' ? 'Math solver' : kind === 'lesson' ? 'Lesson' : 'Chat'}
-                  </span>
-                  <button
-                    onClick={() => setLessonOpen(true)}
-                    className="lws-btn lws-btn-ghost lws-btn-sm"
-                  >
-                    <BookOpenIcon width={16} height={16} />
-                    Generate a lesson
-                  </button>
-                </div>
-                <div className="flex-grow">
-                  <ChatPanel
-                    messages={messages}
-                    isThinking={thinking}
-                    onSend={sendMessage}
-                    onSimplify={simplify}
-                    starters={SOLVER_HINTS}
-                    placeholder={
-                      activeId
-                        ? 'Type your question…'
-                        : 'Ask Sasha anything — a math problem, a concept, anything.'
-                    }
+          <div className="lws-chat-body">
+            {/* Desktop sidebar: a persistent left column. */}
+            <aside className="lws-sidebar-desktop lws-hide-below-lg">
+              <Sidebar
+                sessions={sessions}
+                activeId={activeId}
+                loading={sessionsLoading}
+                onNew={() => void newChat()}
+                onSelect={(id) => void selectSession(id)}
+                onDelete={(id) => void deleteSession(id)}
+              />
+            </aside>
+
+            {/* Mobile drawer: slides over the chat when toggled. */}
+            {drawerOpen && (
+              <div className="lws-drawer-overlay" onClick={() => setDrawerOpen(false)}>
+                <aside
+                  className="lws-drawer"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Conversations"
+                >
+                  <div className="lws-drawer-header">
+                    <span className="lws-h3">Conversations</span>
+                    <button
+                      onClick={() => setDrawerOpen(false)}
+                      className="lws-icon-btn"
+                      aria-label="Close conversations"
+                    >
+                      <XIcon width={18} height={18} />
+                    </button>
+                  </div>
+                  <Sidebar
+                    sessions={sessions}
+                    activeId={activeId}
+                    loading={sessionsLoading}
+                    onNew={() => {
+                      void newChat();
+                      setDrawerOpen(false);
+                    }}
+                    onSelect={(id) => {
+                      void selectSession(id);
+                      setDrawerOpen(false);
+                    }}
+                    onDelete={(id) => void deleteSession(id)}
                   />
-                </div>
+                </aside>
               </div>
+            )}
+
+            <div className="lws-chat-main">
+              <ChatPanel
+                messages={messages}
+                isThinking={thinking}
+                onSend={sendMessage}
+                onSimplify={simplify}
+                starters={SOLVER_HINTS}
+                placeholder={
+                  activeId
+                    ? 'Type your question…'
+                    : 'Ask Sasha anything — a math problem, a concept, anything.'
+                }
+              />
             </div>
           </div>
         </div>

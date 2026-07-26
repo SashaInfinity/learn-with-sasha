@@ -109,3 +109,42 @@ export const SpeakerMutedIcon = ({ className, ...props }: React.SVGProps<SVGSVGE
     <line x1="16" x2="22" y1="9" y2="15" />
   </svg>
 );
+
+/** Play (triangle). */
+export const PlayIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg {...base(className, props)}>
+    <polygon points="6 3 20 12 6 21 6 3" />
+  </svg>
+);
+
+/** Pause (two bars). */
+export const PauseIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg {...base(className, props)}>
+    <rect x="6" y="4" width="4" height="16" rx="1" />
+    <rect x="14" y="4" width="4" height="16" rx="1" />
+  </svg>
+);
+
+/** Square stop. */
+export const StopSquareIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg {...base(className, props)}>
+    <rect x="6" y="6" width="12" height="12" rx="2" />
+  </svg>
+);
+
+/** Hamburger menu. */
+export const MenuIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg {...base(className, props)}>
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+);
+
+/** X / close. */
+export const XIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg {...base(className, props)}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);

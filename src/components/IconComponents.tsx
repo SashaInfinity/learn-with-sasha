@@ -91,3 +91,21 @@ export const CalculatorIcon = ({ className, ...props }: React.SVGProps<SVGSVGEle
     <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01" />
   </svg>
 );
+
+/** Speaker icon (lucide volume-2 style). */
+export const SpeakerIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg {...base(className, props)}>
+    <path d="M11 4.5 6 9H3v6h3l5 4.5z" />
+    <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+    <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+  </svg>
+);
+
+/** Muted speaker icon (lucide volume-x style). */
+export const SpeakerMutedIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg {...base(className, props)}>
+    <path d="M11 4.5 6 9H3v6h3l5 4.5z" />
+    <line x1="22" x2="16" y1="9" y2="15" />
+    <line x1="16" x2="22" y1="9" y2="15" />
+  </svg>
+);

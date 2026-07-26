@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AuthProvider } from './context/AuthContext';
+import { VoiceProvider } from './context/VoiceContext';
 import AppShell from './components/AppShell';
 import './index.css';
 
@@ -14,7 +15,9 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <AuthProvider>
-      <AppShell />
+      <VoiceProvider>
+        <AppShell />
+      </VoiceProvider>
     </AuthProvider>
   </React.StrictMode>,
 );

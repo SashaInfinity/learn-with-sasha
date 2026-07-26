@@ -78,22 +78,15 @@ export default function AppShell() {
   return (
     <div className="lws-root">
       {stage}
-      <header
-        className="fixed top-0 left-0 w-full z-30 backdrop-blur-md border-b"
-        style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.85)',
-          borderColor: 'var(--lws-glass-border)',
-          height: 'var(--lws-header-h)',
-        }}
-      >
-        <div className="lws-container flex items-center justify-between py-3">
+      <header className="lws-header">
+        <div className="lws-container lws-header-row">
           <button
             type="button"
             className="lws-brand flex items-center gap-2"
             onClick={() => setShowLanding(true)}
             aria-label="Learn With Sasha — home"
           >
-            <img src="/logo.png" alt="" className="lws-brand-logo" width={32} height={32} />
+            <img src="/logo.png" alt="" className="lws-brand-logo" width={30} height={30} />
             <span
               className="lws-h3 select-none lws-hide-below-sm"
               style={{ color: 'var(--lws-primary)' }}

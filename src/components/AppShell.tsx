@@ -1,28 +1,45 @@
 /**
- * AppShell: top-level layout with auth gating.
+ * AppShell: top-level layout with auth gating + the persistent 3D Sasha stage.
  *
- *   Landing -> (not authed) AuthScreen -> (authed) ChatHome
+ *   Landing (hero) -> (not authed) AuthScreen (hero) -> (authed) ChatHome (lesson)
  *
- * Navigation is simple state (no router lib). The 3D Sasha stage is mounted
- * once here (Part D) so it never tears down across views.
+ * The stage is mounted ONCE here and never unmounts, so the model glides
+ * between the hero pose (landing/login) and the chat dock as the user moves
+ * through the journey. Sasha's mood comes from the VoiceContext (wave/thinking/
+ * talking/celebrate/shake).
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useVoice } from '../context/VoiceContext';
 import LandingPage from './LandingPage';
 import AuthScreen from './AuthScreen';
 import ChatHome from './ChatHome';
-import SashaStage from './SashaStage';
-
-type StageMode = 'lesson' | 'hidden';
+import SashaStage, { type StageMode } from './SashaStage';
 
 export default function AppShell() {
   const { user, loading, logout } = useAuth();
+  const { mood } = useVoice();
   const [showLanding, setShowLanding] = useState(true);
+  const [wasAuthed, setWasAuthed] = useState(false);
 
-  // The character is shown only once the student is in the app proper.
-  const stageMode: StageMode = !showLanding && user ? 'lesson' : 'hidden';
+  // Mode: Sasha is visible (hero) from landing through login, then docked
+  // (lesson) once the user reaches the chat.
+  const stageMode: StageMode = loading
+    ? 'hidden'
+    : showLanding
+      ? 'hero'
+      : !user
+        ? 'hero'
+        : 'lesson';
 
-  // Initial session check in flight — show the background only.
+  // A wave goodbye on logout.
+  useEffect(() => {
+    if (wasAuthed && !user) {
+      // mood is controlled by VoiceContext; logout just resets to idle hero.
+    }
+    setWasAuthed(!!user);
+  }, [user, wasAuthed]);
+
   if (loading) {
     return (
       <div className="lws-root">
@@ -31,10 +48,8 @@ export default function AppShell() {
     );
   }
 
-  // The single persistent 3D canvas. Mounted once for the whole app.
-  const stage = <SashaStage mode={stageMode} />;
+  const stage = <SashaStage mode={stageMode} mood={mood} />;
 
-  // Landing is shown first; "Get Started" reveals the auth gate.
   if (showLanding) {
     return (
       <div className="lws-root">
@@ -44,7 +59,6 @@ export default function AppShell() {
     );
   }
 
-  // Past landing but not signed in -> login.
   if (!user) {
     return (
       <div className="lws-root">
@@ -54,7 +68,6 @@ export default function AppShell() {
     );
   }
 
-  // Authenticated: the chat-first home. A small top bar carries brand + sign-out.
   return (
     <div className="lws-root">
       {stage}
@@ -80,10 +93,7 @@ export default function AppShell() {
           </span>
           <div className="flex items-center gap-4">
             <span className="lws-small hidden sm:inline">{user.display_name}</span>
-            <button
-              onClick={() => void logout()}
-              className="lws-btn lws-btn-ghost lws-btn-sm"
-            >
+            <button onClick={() => void logout()} className="lws-btn lws-btn-ghost lws-btn-sm">
               Sign out
             </button>
           </div>

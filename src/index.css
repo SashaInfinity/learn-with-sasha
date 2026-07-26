@@ -466,6 +466,25 @@ h1, h2, h3, h4 {
 /* --- markdown (rendered by src/lib/markdown.tsx) ------------------------ */
 .lws-root strong, .lws-panel strong, .lws-card strong { color: var(--lws-dark); font-weight: 700; }
 
+/* --- voice toggle pill (sound on/off in the chat header) ---------------- */
+.lws-voice-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--lws-glass-border);
+  background: var(--lws-tint, rgba(200, 150, 90, 0.1));
+  color: var(--lws-body);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.lws-voice-toggle:hover { transform: translateY(-1px); opacity: 0.9; }
+.lws-voice-toggle[aria-pressed='false'] { opacity: 0.6; }
+.lws-voice-toggle:focus-visible { outline: 2px solid var(--lws-primary); outline-offset: 2px; }
+
 /* --- accessibility: respect reduced-motion ------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

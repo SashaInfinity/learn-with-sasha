@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Role, type ChatHistoryEntry, type ChatKind, type Message, type SessionSummary } from '../types';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { useVoice } from '../context/VoiceContext';
 import Sidebar from './Sidebar';
 import ChatPanel from './ChatPanel';
 import LessonModal from './LessonModal';
@@ -41,6 +42,7 @@ function toMessage(entry: ChatHistoryEntry): Message {
 
 export default function ChatHome() {
   const { user } = useAuth();
+  const { setMood } = useVoice();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -136,6 +138,7 @@ export default function ChatHome() {
       if (!sessionId) return;
       setMessages((prev) => [...prev, { role: Role.USER, text }]);
       setThinking(true);
+      setMood('thinking');
       try {
         const { reply } = await api.chat(sessionId, text, {
           name: user?.display_name ?? 'there',
@@ -143,7 +146,8 @@ export default function ChatHome() {
           interests: '',
         });
         setMessages((prev) => [...prev, { role: Role.MODEL, text: reply }]);
-        // Title may have been auto-set server-side; refresh the sidebar.
+        // mood flips to 'talking' automatically when TTS starts; revert to idle
+        // otherwise.
         void refreshSessions();
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'unknown error';
@@ -153,9 +157,10 @@ export default function ChatHome() {
         ]);
       } finally {
         setThinking(false);
+        setMood('idle');
       }
     },
-    [ensureSession, refreshSessions, user?.display_name],
+    [ensureSession, refreshSessions, user?.display_name, setMood],
   );
 
   const simplify = useCallback(
@@ -190,6 +195,9 @@ export default function ChatHome() {
       const sessionId = await ensureSession();
       if (!sessionId) return;
       setMessages((prev) => [...prev, { role: Role.MODEL, text: formattedText }]);
+      // Celebrate, then settle.
+      setMood('celebrate');
+      setTimeout(() => setMood('idle'), 1200);
       // Persist the model turn so it survives reload. Reuse the chat endpoint's
       // shape by sending a tiny "save-only" message via chat — simplest path is
       // a direct chat turn the user can continue from.
@@ -200,7 +208,7 @@ export default function ChatHome() {
       });
       void refreshSessions();
     },
-    [ensureSession, refreshSessions, user?.display_name],
+    [ensureSession, refreshSessions, user?.display_name, setMood],
   );
 
   return (

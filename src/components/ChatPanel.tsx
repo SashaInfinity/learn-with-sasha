@@ -8,7 +8,8 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { Role, type Message } from '../types';
-import { SendIcon, SparklesIcon, MagicWandIcon } from './IconComponents';
+import { useVoice } from '../context/VoiceContext';
+import { SendIcon, SparklesIcon, MagicWandIcon, SpeakerIcon } from './IconComponents';
 import { Markdown } from '../lib/markdown';
 
 const SashaAvatar = () => (
@@ -45,9 +46,10 @@ const ThinkingIndicator = () => (
 interface ChatMessageProps {
   message: Message;
   onSimplify: (text: string) => void;
+  onSpeak: (text: string) => void;
 }
 
-const ChatMessage = ({ message, onSimplify }: ChatMessageProps) => {
+const ChatMessage = ({ message, onSimplify, onSpeak }: ChatMessageProps) => {
   const isUser = message.role === Role.USER;
   return (
     <div className={`lws-fade-in-up my-4 flex items-start gap-3 ${isUser ? 'justify-end' : ''}`}>
@@ -90,14 +92,26 @@ const ChatMessage = ({ message, onSimplify }: ChatMessageProps) => {
           </div>
         )}
         {!isUser && message.text && (
-          <div className="mt-3 border-t pt-2.5" style={{ borderColor: 'var(--lws-glass-border)' }}>
+          <div
+            className="mt-3 flex items-center gap-4 border-t pt-2.5"
+            style={{ borderColor: 'var(--lws-glass-border)' }}
+          >
+            <button
+              onClick={() => onSpeak(message.text)}
+              aria-label="Speak this reply"
+              className="flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-70"
+              style={{ color: 'var(--lws-primary)' }}
+            >
+              <SpeakerIcon width={13} height={13} />
+              Speak
+            </button>
             <button
               onClick={() => onSimplify(message.text)}
               className="flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-70"
               style={{ color: 'var(--lws-primary)' }}
             >
               <MagicWandIcon width={13} height={13} />
-              Simplify this
+              Simplify
             </button>
           </div>
         )}
@@ -130,12 +144,32 @@ export default function ChatPanel({
   starters = DEFAULT_STARTERS,
   placeholder = 'Type your question…',
 }: ChatPanelProps) {
+  const { speak, muted, setMuted } = useVoice();
   const [input, setInput] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
+  // Track the last message we auto-spoke so we don't replay on re-renders.
+  const lastSpokenIdx = useRef(-1);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
+
+  // Auto-speak a brand-new model reply (only the latest, only once, only if
+  // not muted, only for plain text replies — skip the giant lesson dumps).
+  useEffect(() => {
+    if (muted || messages.length === 0) return;
+    const last = messages[messages.length - 1];
+    const lastIdx = messages.length - 1;
+    if (
+      last.role === Role.MODEL &&
+      lastIdx !== lastSpokenIdx.current &&
+      last.text.length > 0 &&
+      last.text.length <= 600 // skip very long lesson-formatted replies
+    ) {
+      lastSpokenIdx.current = lastIdx;
+      speak(last.text);
+    }
+  }, [messages, muted, speak]);
 
   const submit = () => {
     const text = input.trim();
@@ -146,6 +180,17 @@ export default function ChatPanel({
 
   return (
     <div className="lws-panel flex h-full flex-col p-5">
+      {/* Header row: sound on/off pill. */}
+      <div className="mb-3 flex items-center justify-end">
+        <button
+          onClick={() => setMuted(!muted)}
+          className="lws-voice-toggle"
+          aria-pressed={!muted}
+          title={muted ? 'Voice is off' : 'Voice is on'}
+        >
+          {muted ? '🔇 Voice off' : '🔊 Voice on'}
+        </button>
+      </div>
       <div className="mb-4 flex-grow overflow-y-auto pr-1" role="log" aria-live="polite" aria-label="Conversation with Sasha">
         {messages.length === 0 && !isThinking && (
           <div className="flex h-full flex-col items-center justify-center px-4 text-center">
@@ -171,6 +216,7 @@ export default function ChatPanel({
             key={`${index}-${msg.role}-${msg.text.slice(0, 12)}`}
             message={msg}
             onSimplify={onSimplify}
+            onSpeak={speak}
           />
         ))}
         {isThinking && <ThinkingIndicator />}

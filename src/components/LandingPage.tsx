@@ -35,6 +35,9 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
       <div className="lws-landing-card grid w-full max-w-6xl grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_auto_1fr]">
         <div className="lws-fade-in-up text-center lg:text-right">
           <span className="lws-label-tag lg:justify-end">AI Math Tutor</span>
+          <div className="flex items-center justify-center lg:justify-end gap-3 mb-2">
+            <img src="/logo.png" alt="SashaInfinity" className="lws-landing-logo" width={56} height={56} />
+          </div>
           <h1 className="lws-h1" style={{ fontSize: 'clamp(34px, 7vw, 68px)' }}>
             Learn
             <br />

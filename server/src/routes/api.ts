@@ -189,8 +189,46 @@ const ChatSchema = z.object({
       name: z.string().default('there'),
       topic: z.string().default(''),
       interests: z.string().default(''),
+      language: z.string().default('English'),
     })
     .default({}),
+});
+
+// --- append a message to a session WITHOUT invoking Gemini ----------------
+// Used when a structured lesson is generated: the lesson text is appended as a
+// model turn so it shows in the sidebar thread, without injecting a fake user
+// question. Body: { role: 'user'|'model', text, title? }.
+const AppendMessageSchema = z.object({
+  role: z.enum(['user', 'model']),
+  text: z.string().min(1),
+  title: z.string().max(120).optional(),
+});
+
+apiRouter.post('/sessions/:id/messages', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: 'Invalid session id' });
+    return;
+  }
+  const parsed = AppendMessageSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid message', details: parsed.error.flatten() });
+    return;
+  }
+  const kind = await getSessionKind(req.user!.id, id);
+  if (!kind) {
+    res.status(404).json({ error: 'Session not found' });
+    return;
+  }
+  await addMessage({
+    userId: req.user!.id,
+    sessionId: id,
+    kind,
+    role: parsed.data.role,
+    text: parsed.data.text,
+  });
+  if (parsed.data.title) await patchSession(req.user!.id, id, { title: parsed.data.title });
+  res.json({ ok: true });
 });
 
 apiRouter.post('/chat', async (req, res) => {
@@ -236,14 +274,19 @@ apiRouter.post('/chat', async (req, res) => {
 
 // --- simplify -------------------------------------------------------------
 
+const SimplifySchema = z.object({
+  text: z.string().min(1),
+  language: z.string().default('English'),
+});
+
 apiRouter.post('/simplify', async (req, res) => {
-  const { text } = req.body as { text?: string };
-  if (!text || typeof text !== 'string') {
+  const parsed = SimplifySchema.safeParse(req.body);
+  if (!parsed.success) {
     res.status(400).json({ error: 'text is required' });
     return;
   }
   try {
-    const simplified = await simplifyText(text);
+    const simplified = await simplifyText(parsed.data.text, parsed.data.language);
     res.json({ reply: simplified });
   } catch (err) {
     console.error('[api/simplify] error:', err);
@@ -282,6 +325,7 @@ const SolveSchema = z.object({
   image: z
     .object({ base64: z.string(), mimeType: z.string() })
     .optional(),
+  language: z.string().default('English'),
 });
 
 apiRouter.post('/solve', async (req, res) => {

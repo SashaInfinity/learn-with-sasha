@@ -17,10 +17,30 @@
  *     formatted lesson into the active chat as a model message (also persisted).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Role, type ChatHistoryEntry, type ChatKind, type Message, type SessionSummary } from '../types';
+import { Role, type ChatHistoryEntry, type ChatKind, type Message, type Preferences, type SessionSummary } from '../types';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useVoice } from '../context/VoiceContext';
+import { useToast } from '../context/ToastContext';
+
+/** localStorage key for the most recently opened session (continuity on reload). */
+const LAST_SESSION_KEY = 'lws:lastSessionId';
+
+function rememberSession(id: number) {
+  try {
+    localStorage.setItem(LAST_SESSION_KEY, String(id));
+  } catch {
+    /* private mode / disabled storage — non-fatal */
+  }
+}
+function recallSession(): number | null {
+  try {
+    const v = localStorage.getItem(LAST_SESSION_KEY);
+    return v ? Number(v) : null;
+  } catch {
+    return null;
+  }
+}
 import Sidebar from './Sidebar';
 import ChatPanel from './ChatPanel';
 import LessonModal from './LessonModal';
@@ -43,6 +63,7 @@ function toMessage(entry: ChatHistoryEntry): Message {
 export default function ChatHome() {
   const { user } = useAuth();
   const { setMood } = useVoice();
+  const { toast } = useToast();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -51,6 +72,9 @@ export default function ChatHome() {
   const [kind, setKind] = useState<ChatKind>('chat');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lessonOpen, setLessonOpen] = useState(false);
+  // Saved preferences — flow into chat/solve/lesson as the remembered context
+  // (language + interests) so the experience is continuous across sessions.
+  const [prefs, setPrefs] = useState<Preferences | null>(null);
   // Ref so the persistence callback always writes to the right session, even
   // across re-renders where `activeId` may not have propagated.
   const activeIdRef = useRef<number | null>(null);
@@ -64,15 +88,27 @@ export default function ChatHome() {
     return list;
   }, []);
 
-  // Initial load: list sessions, open the most recent if any (else none — the
-  // empty state invites a new chat).
+  // Initial load: fetch saved preferences + the sessions list, then reopen the
+  // exact session the user last had open (localStorage) if it still exists —
+  // falling back to the most recent. This gives seamless continuity on reload.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
+        // Preferences (language/interests) in parallel with the session list.
+        api
+          .getPreferences()
+          .then(({ preferences }) => {
+            if (!cancelled && preferences) setPrefs(preferences);
+          })
+          .catch(() => {});
+
         const list = await refreshSessions();
         if (cancelled) return;
-        if (list.length) await selectSession(list[0].id);
+        const last = recallSession();
+        const target =
+          last && list.some((s) => s.id === last) ? last : list[0]?.id;
+        if (target) await selectSession(target);
       } catch {
         /* network — leave empty */
       } finally {
@@ -88,6 +124,7 @@ export default function ChatHome() {
   const selectSession = useCallback(async (id: number) => {
     setActiveId(id);
     activeIdRef.current = id;
+    rememberSession(id);
     try {
       const { session, messages: msgs } = await api.getSession(id);
       setKind(session.kind);
@@ -103,6 +140,7 @@ export default function ChatHome() {
     setMessages([]);
     setActiveId(session.id);
     activeIdRef.current = session.id;
+    rememberSession(session.id);
     await refreshSessions();
   }, [refreshSessions]);
 
@@ -129,9 +167,24 @@ export default function ChatHome() {
     setKind('chat');
     setActiveId(session.id);
     activeIdRef.current = session.id;
+    rememberSession(session.id);
     await refreshSessions();
     return session.id;
   }, [refreshSessions]);
+
+  // Build the tutor context from saved preferences + the active lesson topic so
+  // every Gemini call (chat/simplify/solve) replies in the student's language
+  // and ties to their interests. `activeTopic`/`activeInterests` are reserved
+  // for future lesson-aware chat; today prefs drive language + interests.
+  const buildContext = useCallback(
+    () => ({
+      name: user?.display_name ?? 'there',
+      topic: '',
+      interests: prefs?.interests?.join(', ') ?? '',
+      language: prefs?.language ?? 'English',
+    }),
+    [user?.display_name, prefs],
+  );
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -141,27 +194,22 @@ export default function ChatHome() {
       setThinking(true);
       setMood('thinking');
       try {
-        const { reply } = await api.chat(sessionId, text, {
-          name: user?.display_name ?? 'there',
-          topic: '',
-          interests: '',
-        });
+        const { reply } = await api.chat(sessionId, text, buildContext());
         setMessages((prev) => [...prev, { role: Role.MODEL, text: reply }]);
-        // mood flips to 'talking' automatically when TTS starts; revert to idle
-        // otherwise.
         void refreshSessions();
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'unknown error';
+        toast(`Couldn't reach Sasha: ${msg}`, 'error');
         setMessages((prev) => [
           ...prev,
-          { role: Role.MODEL, text: `Sorry — I hit an error: ${msg}` },
+          { role: Role.MODEL, text: `Sorry — I hit an error: ${msg}. Please try again.` },
         ]);
       } finally {
         setThinking(false);
         setMood('idle');
       }
     },
-    [ensureSession, refreshSessions, user?.display_name, setMood],
+    [ensureSession, refreshSessions, buildContext, setMood, toast],
   );
 
   const simplify = useCallback(
@@ -174,10 +222,11 @@ export default function ChatHome() {
       ]);
       setThinking(true);
       try {
-        const { reply } = await api.simplify(textToSimplify);
+        const { reply } = await api.simplify(textToSimplify, buildContext().language);
         setMessages((prev) => [...prev, { role: Role.MODEL, text: reply }]);
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'unknown error';
+        toast(`Couldn't simplify that: ${msg}`, 'error');
         setMessages((prev) => [
           ...prev,
           { role: Role.MODEL, text: `Sorry, I couldn't simplify that. ${msg}` },
@@ -186,30 +235,34 @@ export default function ChatHome() {
         setThinking(false);
       }
     },
-    [ensureSession],
+    [ensureSession, buildContext, toast],
   );
 
   /** LessonModal callback: drop the generated lesson into the chat as a model
-   *  message and persist it so it shows in the sidebar thread. */
+   *  message and persist it via the append-message endpoint (no fake user turn,
+   *  no extra Gemini call). */
   const onLesson = useCallback(
     async (formattedText: string) => {
       const sessionId = await ensureSession();
       if (!sessionId) return;
       setMessages((prev) => [...prev, { role: Role.MODEL, text: formattedText }]);
-      // Celebrate, then settle.
       setMood('celebrate');
       setTimeout(() => setMood('idle'), 1200);
-      // Persist the model turn so it survives reload. Reuse the chat endpoint's
-      // shape by sending a tiny "save-only" message via chat — simplest path is
-      // a direct chat turn the user can continue from.
-      void api.chat(sessionId, 'Show me the lesson you generated.', {
-        name: user?.display_name ?? 'there',
-        topic: '',
-        interests: '',
+      // Persist as a model-only turn + title the session from the lesson.
+      void api.appendMessage(sessionId, {
+        role: 'model',
+        text: formattedText,
+        title: 'Lesson',
       });
       void refreshSessions();
+      // LessonModal just saved new prefs server-side; refetch so subsequent
+      // chats use the updated language/interests.
+      api
+        .getPreferences()
+        .then(({ preferences }) => preferences && setPrefs(preferences))
+        .catch(() => {});
     },
-    [ensureSession, refreshSessions, user?.display_name, setMood],
+    [ensureSession, refreshSessions, setMood],
   );
 
   return (

@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AuthProvider } from './context/AuthContext';
 import { VoiceProvider } from './context/VoiceContext';
+import { ToastProvider } from './context/ToastContext';
 import AppShell from './components/AppShell';
 import './index.css';
 
@@ -14,10 +15,12 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <VoiceProvider>
-        <AppShell />
-      </VoiceProvider>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <VoiceProvider>
+          <AppShell />
+        </VoiceProvider>
+      </AuthProvider>
+    </ToastProvider>
   </React.StrictMode>,
 );

@@ -79,25 +79,28 @@ export default function AppShell() {
     <div className="lws-root">
       {stage}
       <header
-        className="sticky top-0 z-30 backdrop-blur-md border-b"
+        className="fixed top-0 left-0 w-full z-30 backdrop-blur-md border-b"
         style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.75)',
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
           borderColor: 'var(--lws-glass-border)',
+          height: 'var(--lws-header-h)',
         }}
       >
         <div className="lws-container flex items-center justify-between py-3">
-          <span
-            className="lws-h3 cursor-pointer select-none"
-            style={{ color: 'var(--lws-primary)' }}
+          <button
+            type="button"
+            className="lws-brand flex items-center gap-2"
             onClick={() => setShowLanding(true)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') setShowLanding(true);
-            }}
+            aria-label="Learn With Sasha — home"
           >
-            Learn With Sasha
-          </span>
+            <img src="/logo.png" alt="" className="lws-brand-logo" width={32} height={32} />
+            <span
+              className="lws-h3 select-none lws-hide-below-sm"
+              style={{ color: 'var(--lws-primary)' }}
+            >
+              Learn With Sasha
+            </span>
+          </button>
           <div className="flex items-center gap-4">
             <span className="lws-small hidden sm:inline">{user.display_name}</span>
             <button onClick={() => void logout()} className="lws-btn lws-btn-ghost lws-btn-sm">

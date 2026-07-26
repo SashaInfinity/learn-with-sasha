@@ -145,7 +145,7 @@ export default function ChatPanel({
   starters = DEFAULT_STARTERS,
   placeholder = 'Type your question…',
 }: ChatPanelProps) {
-  const { speak, muted } = useVoice();
+  const { speak, muted, setMood } = useVoice();
   const [input, setInput] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
   // Track the last message we auto-spoke so we don't replay on re-renders.
@@ -226,6 +226,8 @@ export default function ChatPanel({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onFocus={() => setMood('attentive')}
+          onBlur={() => setMood('idle')}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
           placeholder={placeholder}
           disabled={isThinking}

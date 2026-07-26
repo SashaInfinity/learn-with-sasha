@@ -21,7 +21,14 @@ import {
 } from 'react';
 import { voice } from '../lib/voice';
 
-export type SashaMood = 'idle' | 'wave' | 'thinking' | 'talking' | 'celebrate' | 'shake';
+export type SashaMood =
+  | 'idle'
+  | 'wave'
+  | 'thinking'
+  | 'talking'
+  | 'celebrate'
+  | 'shake'
+  | 'attentive';
 
 interface VoiceContextValue {
   isSpeaking: boolean;

@@ -130,13 +130,16 @@ export function parseLesson(text: string): LessonResult {
 export async function chatReply(args: {
   history: { role: 'user' | 'model'; text: string }[];
   message: string;
-  context: { name: string; topic: string; interests: string };
+  context: { name: string; topic: string; interests: string; language: string };
 }): Promise<string> {
   const ai = client();
+  const { name, topic, interests, language } = args.context;
   const chat: Chat = ai.chats.create({
     model: MODEL,
     config: {
-      systemInstruction: `You are Sasha, a helpful math tutor talking with ${args.context.name}. They just learned about ${args.context.topic} (tied to ${args.context.interests}). Be concise and encouraging.`,
+      systemInstruction: `You are Sasha, a helpful math tutor talking with ${name}. ${
+        topic ? `They have been exploring ${topic}` : 'They are learning math'
+      }${interests ? ` (tied to their interest in ${interests})` : ''}. Be concise and encouraging. Always reply in ${language}.`,
     },
   });
   // Replay history (the SDK accumulates turns within this Chat object).
@@ -148,11 +151,11 @@ export async function chatReply(args: {
 }
 
 /** Simplify a chunk of text (explain like the student is 10). */
-export async function simplifyText(text: string): Promise<string> {
+export async function simplifyText(text: string, language = 'English'): Promise<string> {
   const ai = client();
   const resp = await ai.models.generateContent({
     model: MODEL,
-    contents: `Explain the following in very simple terms, as if talking to a 10-year-old:\n\n${text}`,
+    contents: `Explain the following in very simple terms, as if talking to a 10-year-old. Reply in ${language}.\n\n${text}`,
   });
   return resp.text ?? '';
 }
@@ -165,16 +168,19 @@ export async function simplifyText(text: string): Promise<string> {
 export async function solveProblem(args: {
   problemText?: string;
   image?: { base64: string; mimeType: string };
+  language?: string;
 }): Promise<{ steps: string; finalAnswer: string; raw: string }> {
   const ai = client();
+  const language = args.language ?? 'English';
   const parts: Array<Record<string, unknown>> = [];
 
   const instruction =
-    'You are Sasha, a math solver. Read the problem and solve it STEP BY STEP. ' +
-    'Be conversational and explain each step briefly. ' +
-    'End with a clear final answer on its own line in this exact form:\n' +
-    'FINAL ANSWER: <answer>\n\n' +
-    'If the problem is ambiguous, state your assumption then continue.';
+    `You are Sasha, a math solver. Read the problem and solve it STEP BY STEP. ` +
+    `Be conversational and explain each step briefly. ` +
+    `End with a clear final answer on its own line in this exact form:\n` +
+    `FINAL ANSWER: <answer>\n\n` +
+    `If the problem is ambiguous, state your assumption then continue. ` +
+    `Always reply in ${language}.`;
 
   if (args.problemText) parts.push({ text: args.problemText });
   if (args.image) {

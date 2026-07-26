@@ -62,36 +62,31 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4 animate-fadeInUp"
-      style={{ animationDuration: '0.3s' }}
+      className="fixed inset-0 bg-slate-900/60 z-50 flex justify-center items-center p-4"
       onClick={onClose}
     >
       <div
         ref={panelRef}
         tabIndex={-1}
-        className="bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-2xl border animate-pulseGlowThemed outline-none"
-        style={{ borderColor: 'var(--color-border-themed)' }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 outline-none"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
       >
-        <div
-          className="flex justify-between items-center p-4 border-b"
-          style={{ borderColor: 'var(--color-border-surface)' }}
-        >
+        <div className="flex justify-between items-center p-5 border-b border-slate-100">
           {title && (
-            <h2 id={titleId} className="text-xl font-bold text-white">
+            <h2 id={titleId} className="text-lg font-bold text-slate-900">
               {title}
             </h2>
           )}
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors ml-auto"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-auto"
             aria-label="Close modal"
           >
             <svg
-              className="w-6 h-6"
+              className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -107,7 +102,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
             </svg>
           </button>
         </div>
-        <div className="p-6 max-h-[80vh] overflow-y-auto">{children}</div>
+        <div className="p-5 max-h-[80vh] overflow-y-auto">{children}</div>
       </div>
     </div>
   );

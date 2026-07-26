@@ -5,9 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Match sasha_lms: Inter for body/UI, Lexend Deca for headings.
-        sans: ['Inter', 'sans-serif'],
-        heading: ['Lexend Deca', 'sans-serif'],
+        // Single typeface per the mockup — Plus Jakarta Sans everywhere.
+        sans: ['Plus Jakarta Sans', 'sans-serif'],
       },
     },
   },

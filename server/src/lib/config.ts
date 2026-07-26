@@ -28,4 +28,7 @@ export const config = {
 
   geminiApiKey: required('GEMINI_API_KEY'),
   geminiModel: process.env.GEMINI_MODEL ?? 'gemini-2.5-flash',
+
+  // Local Piper TTS container (OpenAI-compatible /v1/audio/speech).
+  ttsUrl: process.env.TTS_URL ?? 'http://127.0.0.1:5000',
 } as const;

@@ -75,10 +75,12 @@ export const api = {
     language: string;
     hasUploadedNote: boolean;
   }) =>
-    request<{ lesson: LessonContent; quiz: QuizQuestion[]; id: number; createdAt: string }>(
-      '/api/lesson',
-      { method: 'POST', body: JSON.stringify(args) },
-    ),
+    request<{
+      lesson: LessonContent;
+      quiz: QuizQuestion[];
+      id: number;
+      createdAt: string;
+    }>('/api/lesson', { method: 'POST', body: JSON.stringify(args) }),
   listLessons: () => request<{ lessons: SavedLesson[] }>('/api/lessons'),
   getLesson: (id: number) => request<{ lesson: SavedLesson }>(`/api/lessons/${id}`),
 
@@ -144,7 +146,9 @@ export const api = {
 
   // --- history (legacy, kind-filtered) ---
   getHistory: (kind?: ChatKind) =>
-    request<{ history: ChatHistoryEntry[] }>(`/api/history${kind ? `?kind=${kind}` : ''}`),
+    request<{ history: ChatHistoryEntry[] }>(
+      `/api/history${kind ? `?kind=${kind}` : ''}`,
+    ),
   clearHistory: (kind?: ChatKind) =>
     request<{ ok: true }>(`/api/history${kind ? `?kind=${kind}` : ''}`, {
       method: 'DELETE',

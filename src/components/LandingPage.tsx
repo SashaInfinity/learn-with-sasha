@@ -39,7 +39,10 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                 ∞
               </div>
             </div>
-            <h1 className="font-bold text-slate-900 tracking-tight" style={{ fontSize: 'clamp(34px, 6vw, 60px)', lineHeight: 1.1 }}>
+            <h1
+              className="font-bold text-slate-900 tracking-tight"
+              style={{ fontSize: 'clamp(34px, 6vw, 60px)', lineHeight: 1.1 }}
+            >
               Learn
               <br />
               <span className="text-amber-600">With Sasha</span>
@@ -50,12 +53,18 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
         {/* Centre reserve for the 3D character (desktop). */}
         <div
           className="hidden lg:block"
-          style={{ width: 'clamp(220px, 26vw, 340px)', height: 'clamp(320px, 50vh, 560px)' }}
+          style={{
+            width: 'clamp(220px, 26vw, 340px)',
+            height: 'clamp(320px, 50vh, 560px)',
+          }}
           aria-hidden
         />
 
         <div className="text-center lg:text-left">
-          <p className="text-slate-600 max-w-md mx-auto lg:mx-0" style={{ fontSize: 'clamp(15px, 1.6vw, 18px)' }}>
+          <p
+            className="text-slate-600 max-w-md mx-auto lg:mx-0"
+            style={{ fontSize: 'clamp(15px, 1.6vw, 18px)' }}
+          >
             Your personal AI tutor for math. Explore concepts through your favourite
             topics, solve problems step by step, and hear Sasha explain — voice and all.
           </p>
@@ -68,7 +77,9 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               Get Started
             </button>
           </div>
-          <p className="text-xs text-slate-400 mt-4">Lessons tailored to you · saved automatically</p>
+          <p className="text-xs text-slate-400 mt-4">
+            Lessons tailored to you · saved automatically
+          </p>
         </div>
       </div>
 

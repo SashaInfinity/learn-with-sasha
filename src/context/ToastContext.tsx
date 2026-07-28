@@ -34,18 +34,30 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const id = nextId.current++;
     setToasts((prev) => [...prev, { id, kind, message }]);
     // Auto-dismiss after 5s (errors stay a bit longer).
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, kind === 'error' ? 6000 : 4000);
+    setTimeout(
+      () => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      },
+      kind === 'error' ? 6000 : 4000,
+    );
   }, []);
 
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
       {/* Live region for screen readers + visual stack pinned bottom-right. */}
-      <div className="lws-toast-stack" role="region" aria-label="Notifications" aria-live="polite">
+      <div
+        className="lws-toast-stack"
+        role="region"
+        aria-label="Notifications"
+        aria-live="polite"
+      >
         {toasts.map((t) => (
-          <div key={t.id} className={`lws-toast lws-toast-${t.kind}`} role={t.kind === 'error' ? 'alert' : 'status'}>
+          <div
+            key={t.id}
+            className={`lws-toast lws-toast-${t.kind}`}
+            role={t.kind === 'error' ? 'alert' : 'status'}
+          >
             {t.message}
           </div>
         ))}

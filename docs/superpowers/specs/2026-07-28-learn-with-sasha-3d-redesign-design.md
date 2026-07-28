@@ -12,7 +12,7 @@ Concretely, in the current code:
    is no landing animation, no loading feedback, and a 4.2 MB uncompressed GLB
    means a visible dead gap on first load.
 2. **Login misalignment.** `SashaStage` anchors hero mode at screen-center NDC
-   (`SashaStage.tsx:235`), while `AuthScreen` reserves a *left* grid column
+   (`SashaStage.tsx:235`), while `AuthScreen` reserves a _left_ grid column
    (`AuthScreen.tsx:48`). The model floats over the form rather than sitting in
    the space reserved for it.
 3. **Untestable, tangled stage.** All lighting, loading, anchoring, pose math and
@@ -28,15 +28,15 @@ Concretely, in the current code:
 
 ## Asset facts (verified by inspecting the GLB header)
 
-| Property | Value |
-| --- | --- |
-| File size | 4.2 MB |
-| Triangles | ~193,236 |
-| Meshes / nodes / materials | 3 / 3 / 3 |
-| Textures | **none** (`images: []`) |
-| Skins | **none** |
-| Animation clips | **none** (`animations: []`) |
-| Extensions | `KHR_materials_clearcoat` |
+| Property                   | Value                       |
+| -------------------------- | --------------------------- |
+| File size                  | 4.2 MB                      |
+| Triangles                  | ~193,236                    |
+| Meshes / nodes / materials | 3 / 3 / 3                   |
+| Textures                   | **none** (`images: []`)     |
+| Skins                      | **none**                    |
+| Animation clips            | **none** (`animations: []`) |
+| Extensions                 | `KHR_materials_clearcoat`   |
 
 Two consequences drive the whole design:
 
@@ -48,15 +48,15 @@ Two consequences drive the whole design:
 
 ## Decisions
 
-| Question | Decision |
-| --- | --- |
-| Rocket entrance | 2D CSS/SVG rocket overlay that hands off to the 3D model |
-| Redesign scope | Full: landing + login + dashboard |
-| Geometry budget | Draco + simplify to ~60k triangles |
-| Entrance replay | Once per browser session (`sessionStorage`) |
-| Login placement | Sasha anchored to a reserved DOM column |
+| Question         | Decision                                                       |
+| ---------------- | -------------------------------------------------------------- |
+| Rocket entrance  | 2D CSS/SVG rocket overlay that hands off to the 3D model       |
+| Redesign scope   | Full: landing + login + dashboard                              |
+| Geometry budget  | Draco + simplify to ~60k triangles                             |
+| Entrance replay  | Once per browser session (`sessionStorage`)                    |
+| Login placement  | Sasha anchored to a reserved DOM column                        |
 | Visual direction | Keep slate/amber + Plus Jakarta Sans; refine layout and motion |
-| Architecture | Refactor in place on raw three.js (no react-three-fiber) |
+| Architecture     | Refactor in place on raw three.js (no react-three-fiber)       |
 
 ## Architecture
 
@@ -86,7 +86,7 @@ imports React or touches the DOM except `anchors.ts`, which reads rects.
   `{ mode, mood, elapsed, pointer, anchor, amplitude, reducedMotion }`.
   Output: `{ position, scale, rotation }`. No THREE mutation, no DOM reads.
   This is the primary unit-tested surface.
-- **`anchors.fitToRect(rect, localSize, baseScale)`** owns *all* screen-to-world
+- **`anchors.fitToRect(rect, localSize, baseScale)`** owns _all_ screen-to-world
   math. One implementation, used by every screen. Replaces the two divergent
   inline versions.
 - **`useSashaAnchor(ref, opts)`** — a screen declares where Sasha belongs by
@@ -103,16 +103,16 @@ mobile `-0.8` position fudge (`SashaStage.tsx:139`), and the hardcoded
 
 Phase machine in `entrance.ts`:
 
-| Phase | Time | Behaviour |
-| --- | --- | --- |
+| Phase    | Time       | Behaviour                                                                                 |
+| -------- | ---------- | ----------------------------------------------------------------------------------------- |
 | `launch` | 0.00–0.80s | Rocket SVG travels bottom → centre, ease-out cubic, CSS exhaust trail and spark particles |
-| `burst` | 0.80–1.10s | Rocket scales out; radial amber flare expands |
-| `reveal` | 1.10–1.90s | Sasha opacity 0→1, scale 0.35→1 with slight spring overshoot; flare fades |
-| `settle` | 1.90–3.20s | Mood set to `wave`; idle sway ramps in |
-| `done` | — | Normal pose director; overlay unmounted |
+| `burst`  | 0.80–1.10s | Rocket scales out; radial amber flare expands                                             |
+| `reveal` | 1.10–1.90s | Sasha opacity 0→1, scale 0.35→1 with slight spring overshoot; flare fades                 |
+| `settle` | 1.90–3.20s | Mood set to `wave`; idle sway ramps in                                                    |
+| `done`   | —          | Normal pose director; overlay unmounted                                                   |
 
 **Gating.** The timeline holds at the end of `burst` until the model is decoded
-*and* one frame has rendered. If the model is ready earlier (warm cache) the
+_and_ one frame has rendered. If the model is ready earlier (warm cache) the
 sequence proceeds on schedule — it is never shortened, so it cannot flash. If the
 load runs long, the rocket hovers with an amber progress ring driven by
 `onProgress` instead of showing a dead screen.
@@ -133,12 +133,12 @@ changes only. This is explicit in JS — the existing global CSS override
 
 ## Error handling
 
-| Failure | Behaviour |
-| --- | --- |
-| WebGL unavailable | Rocket still plays; hands off to a static `logo.png` hero image. App fully usable. (Today `SashaStage` returns early and the screen is silently empty, `SashaStage.tsx:71-74`.) |
-| GLB 404 or decode error | Same static fallback, one toast via `ToastContext`, timeline forced to `done` — no infinite rocket. |
-| Draco decoder fails to load | Retry once with the uncompressed `Sasha-Character.glb`, which stays in the repo. |
-| Anchor element missing | Fall back to a viewport-centre anchor rect so the model is never off-screen. |
+| Failure                     | Behaviour                                                                                                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WebGL unavailable           | Rocket still plays; hands off to a static `logo.png` hero image. App fully usable. (Today `SashaStage` returns early and the screen is silently empty, `SashaStage.tsx:71-74`.) |
+| GLB 404 or decode error     | Same static fallback, one toast via `ToastContext`, timeline forced to `done` — no infinite rocket.                                                                             |
+| Draco decoder fails to load | Retry once with the uncompressed `Sasha-Character.glb`, which stays in the repo.                                                                                                |
+| Anchor element missing      | Fall back to a viewport-centre anchor rect so the model is never off-screen.                                                                                                    |
 
 ## Pose and camera
 
@@ -161,11 +161,11 @@ teleports.
 
 ### Anchor rects per screen
 
-| Screen | Desktop ≥1024px | Tablet 640–1023px | Mobile <640px |
-| --- | --- | --- | --- |
-| Landing | Centre column, 26vw × 50vh | Centre, 40vw | Full-width behind the text card, 55vh, reduced opacity |
-| Login | Left grid column (fixes the overlap) | Above the card, 240px tall | Above the card, 180px tall |
-| Dashboard | `#sasha-dock` in the mascot card | Same | Compact 96px inline presence |
+| Screen    | Desktop ≥1024px                      | Tablet 640–1023px          | Mobile <640px                                          |
+| --------- | ------------------------------------ | -------------------------- | ------------------------------------------------------ |
+| Landing   | Centre column, 26vw × 50vh           | Centre, 40vw               | Full-width behind the text card, 55vh, reduced opacity |
+| Login     | Left grid column (fixes the overlap) | Above the card, 240px tall | Above the card, 180px tall                             |
+| Dashboard | `#sasha-dock` in the mascot card     | Same                       | Compact 96px inline presence                           |
 
 Anchors are DOM rects, so layout drives the 3D. `resize` and `orientationchange`
 re-read them, so alignment holds at every width instead of at two breakpoints.

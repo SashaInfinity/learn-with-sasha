@@ -51,7 +51,9 @@ export default function AuthScreen() {
           style={{ minHeight: 'clamp(360px, 60vh, 600px)' }}
         >
           <div className="bg-amber-50 border border-amber-200/60 rounded-2xl px-4 py-3 shadow-sm text-center mb-3">
-            <span className="text-sm font-semibold text-slate-800">Sign in and let&apos;s begin.</span>
+            <span className="text-sm font-semibold text-slate-800">
+              Sign in and let&apos;s begin.
+            </span>
           </div>
         </div>
 
@@ -67,7 +69,10 @@ export default function AuthScreen() {
 
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label
+                htmlFor="login-email"
+                className="block text-sm font-semibold text-slate-700 mb-1.5"
+              >
                 Email
               </label>
               <input
@@ -87,7 +92,10 @@ export default function AuthScreen() {
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label
+                htmlFor="login-password"
+                className="block text-sm font-semibold text-slate-700 mb-1.5"
+              >
                 Password
               </label>
               <input
@@ -106,7 +114,10 @@ export default function AuthScreen() {
             </div>
 
             {error && (
-              <p role="alert" className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+              <p
+                role="alert"
+                className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+              >
                 {error}
               </p>
             )}
@@ -116,7 +127,13 @@ export default function AuthScreen() {
               disabled={busy}
               className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold py-2.5 rounded-xl shadow-sm hover:opacity-95 transition-all disabled:opacity-60"
             >
-              {busy && <span className="lws-voice-spinner" aria-hidden style={{ width: 16, height: 16 }} />}
+              {busy && (
+                <span
+                  className="lws-voice-spinner"
+                  aria-hidden
+                  style={{ width: 16, height: 16 }}
+                />
+              )}
               {busy ? 'Signing in…' : 'Sign In'}
             </button>
           </form>

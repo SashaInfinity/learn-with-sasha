@@ -5,3 +5,4 @@ package-lock.json
 *.min.js
 *.min.css
 .well-known
+public

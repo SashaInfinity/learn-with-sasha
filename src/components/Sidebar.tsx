@@ -88,11 +88,12 @@ export default function Sidebar({
             return (
               <div
                 key={s.id}
-                className={`group p-3 rounded-lg cursor-pointer transition-all border ${
+                className={`lws-session-item group p-3 rounded-lg cursor-pointer transition-all border ${
                   active
                     ? 'bg-amber-50/80 border-amber-200/80'
                     : 'hover:bg-slate-50 border-transparent'
                 }`}
+                data-active={active}
                 onClick={() => onSelect(s.id)}
                 role="button"
                 tabIndex={0}

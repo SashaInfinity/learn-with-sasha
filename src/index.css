@@ -165,12 +165,57 @@ body {
   transform: rotate(45deg);
 }
 
-/* --- the 3D dock (SashaStage projects the character here) --------------- */
+/* --- the 3D dock (the stage anchors Sasha to this element) --------------- */
 .lws-dock {
   width: 100%;
   max-width: 208px;
   aspect-ratio: 1 / 1;
   margin: 0 auto;
+}
+.lws-dock-wrap {
+  margin: var(--lws-space-6) 0;
+}
+
+/* Below lg the mascot card collapses to a compact horizontal strip so mobile
+   users still see Sasha (previously the whole section was hidden). */
+@media (max-width: 1023px) {
+  .lws-mascot-section .lws-mascot-card {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--lws-space-3);
+    padding: var(--lws-space-3);
+  }
+  .lws-mascot-section .lws-dock {
+    max-width: 96px;
+  }
+  .lws-mascot-section .lws-dock-wrap {
+    margin: 0;
+  }
+  .lws-mascot-section .lws-bubble {
+    flex: 1;
+  }
+  .lws-mascot-section .lws-bubble::after {
+    display: none;
+  }
+}
+
+/* --- dashboard polish ---------------------------------------------------- */
+.lws-session-item {
+  border-radius: var(--lws-radius-md);
+  transition:
+    background-color var(--lws-dur-fast) var(--lws-ease),
+    transform var(--lws-dur-fast) var(--lws-ease);
+}
+.lws-session-item:hover {
+  background-color: #f8fafc;
+  transform: translateX(2px);
+}
+.lws-session-item[data-active='true'] {
+  background-color: #fffbeb;
+  box-shadow: inset 3px 0 0 var(--lws-amber);
+}
+.lws-message-in {
+  animation: lwsRise var(--lws-dur-base) var(--lws-ease) forwards;
 }
 
 /* --- voice control bar (transport + sliders) ---------------------------- */

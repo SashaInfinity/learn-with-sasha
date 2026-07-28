@@ -22,7 +22,10 @@ export interface FitOptions {
 }
 
 /** Centre of `rect` in normalised device coordinates (-1..1, y up). */
-export function rectCenterToNdc(rect: AnchorRect, viewport: Viewport): { x: number; y: number } {
+export function rectCenterToNdc(
+  rect: AnchorRect,
+  viewport: Viewport,
+): { x: number; y: number } {
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
   return {
@@ -62,7 +65,11 @@ export function fitScale(
 const scratch = new THREE.Vector3();
 
 /** Projects an NDC point onto the z=0 plane the model sits on. */
-export function anchorToWorld(camera: THREE.PerspectiveCamera, ndcX: number, ndcY: number): Vec3 {
+export function anchorToWorld(
+  camera: THREE.PerspectiveCamera,
+  ndcX: number,
+  ndcY: number,
+): Vec3 {
   scratch.set(ndcX, ndcY, 0.5).unproject(camera);
   scratch.sub(camera.position).normalize();
   const t = (0 - camera.position.z) / scratch.z;
@@ -74,7 +81,10 @@ export function anchorToWorld(camera: THREE.PerspectiveCamera, ndcX: number, ndc
 }
 
 /** World units covered by one CSS pixel on the z=0 plane. */
-export function worldPerPixel(camera: THREE.PerspectiveCamera, viewportHeight: number): number {
+export function worldPerPixel(
+  camera: THREE.PerspectiveCamera,
+  viewportHeight: number,
+): number {
   const top = anchorToWorld(camera, 0, 1);
   const bottom = anchorToWorld(camera, 0, -1);
   return (top.y - bottom.y) / viewportHeight;

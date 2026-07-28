@@ -12,6 +12,7 @@ export default tseslint.config(
     ignores: [
       'dist/**',
       'node_modules/**',
+      'public/**', // static assets, incl. the vendored Draco decoder
       'server/**', // backend has its own lint config
       '*.config.js',
       '*.config.ts',
@@ -23,6 +24,16 @@ export default tseslint.config(
 
   // TypeScript recommendations (type-aware rules off for speed)
   ...tseslint.configs.recommended,
+
+  // Node build scripts
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: globals.node,
+    },
+  },
 
   {
     files: ['**/*.{ts,tsx}'],

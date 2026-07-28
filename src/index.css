@@ -23,6 +23,72 @@
 
   /* Sticky header height — consumed by the chat dashboard's top offset. */
   --lws-header-h: 64px;
+
+  /* Spacing rhythm — components use these instead of ad hoc padding. */
+  --lws-space-1: 4px;
+  --lws-space-2: 8px;
+  --lws-space-3: 12px;
+  --lws-space-4: 16px;
+  --lws-space-5: 24px;
+  --lws-space-6: 32px;
+
+  /* Corner radii. */
+  --lws-radius-sm: 8px;
+  --lws-radius-md: 12px;
+  --lws-radius-lg: 16px;
+  --lws-radius-xl: 24px;
+
+  /* Elevation scale — three steps, used consistently across cards. */
+  --lws-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --lws-shadow-2: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --lws-shadow-3: 0 12px 40px rgba(15, 23, 42, 0.12);
+
+  /* Motion — one easing curve and two durations for every transition. */
+  --lws-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --lws-dur-fast: 140ms;
+  --lws-dur-base: 240ms;
+}
+
+/* --- shared surfaces ----------------------------------------------------- */
+.lws-surface {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--lws-radius-lg);
+  box-shadow: var(--lws-shadow-1);
+}
+.lws-surface-raised {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--lws-radius-xl);
+  box-shadow: var(--lws-shadow-2);
+}
+
+/* --- shared interactions ------------------------------------------------- */
+.lws-lift {
+  transition:
+    transform var(--lws-dur-fast) var(--lws-ease),
+    box-shadow var(--lws-dur-fast) var(--lws-ease),
+    opacity var(--lws-dur-fast) var(--lws-ease);
+}
+.lws-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lws-shadow-2);
+}
+.lws-lift:active {
+  transform: translateY(0);
+}
+
+/* Staggered entrance for lists and headline words. */
+.lws-rise {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: lwsRise var(--lws-dur-base) var(--lws-ease) forwards;
+}
+@keyframes lwsRise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 body {

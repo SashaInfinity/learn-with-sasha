@@ -43,7 +43,10 @@ describe('pose — base placement', () => {
 
   it('falls back to the centre anchor when none is registered', () => {
     const p = pose(input({ anchor: null, reducedMotion: true }), metrics);
-    const expected = pose(input({ anchor: FALLBACK_ANCHOR, reducedMotion: true }), metrics);
+    const expected = pose(
+      input({ anchor: FALLBACK_ANCHOR, reducedMotion: true }),
+      metrics,
+    );
     expect(p.position.x).toBeCloseTo(expected.position.x, 6);
   });
 
@@ -72,7 +75,10 @@ describe('pose — idle layer', () => {
 
   it('produces no motion at all under reduced motion', () => {
     const a = pose(input({ elapsed: 0, reducedMotion: true }), metrics);
-    const b = pose(input({ elapsed: 7.7, reducedMotion: true, pointer: { x: 1, y: 1 } }), metrics);
+    const b = pose(
+      input({ elapsed: 7.7, reducedMotion: true, pointer: { x: 1, y: 1 } }),
+      metrics,
+    );
     expect(a.position.y).toBeCloseTo(b.position.y, 6);
     expect(a.rotation.y).toBeCloseTo(b.rotation.y, 6);
     expect(a.rotation.x).toBeCloseTo(b.rotation.x, 6);
@@ -88,7 +94,9 @@ describe('pose — mood layer', () => {
   });
 
   it('thinking pitches the model downward', () => {
-    expect(pose(input({ mood: 'thinking', elapsed: 0 }), metrics).rotation.x).toBeGreaterThan(0.1);
+    expect(
+      pose(input({ mood: 'thinking', elapsed: 0 }), metrics).rotation.x,
+    ).toBeGreaterThan(0.1);
   });
 
   it('attentive leans forward less than thinking', () => {
@@ -111,7 +119,10 @@ describe('pose — mood layer', () => {
   });
 
   it('suppresses mood motion under reduced motion', () => {
-    const a = pose(input({ mood: 'celebrate', elapsed: 0.2, reducedMotion: true }), metrics);
+    const a = pose(
+      input({ mood: 'celebrate', elapsed: 0.2, reducedMotion: true }),
+      metrics,
+    );
     const b = pose(input({ mood: 'idle', elapsed: 0.2, reducedMotion: true }), metrics);
     expect(a.position.y).toBeCloseTo(b.position.y, 6);
     expect(a.rotation.z).toBeCloseTo(b.rotation.z, 6);
@@ -120,14 +131,18 @@ describe('pose — mood layer', () => {
 
 describe('pose — voice layer', () => {
   it('adds yaw wobble proportional to amplitude', () => {
-    const quiet = pose(input({ mood: 'talking', amplitude: 0, elapsed: 0.3 }), metrics).rotation.y;
-    const loud = pose(input({ mood: 'talking', amplitude: 1, elapsed: 0.3 }), metrics).rotation.y;
+    const quiet = pose(input({ mood: 'talking', amplitude: 0, elapsed: 0.3 }), metrics)
+      .rotation.y;
+    const loud = pose(input({ mood: 'talking', amplitude: 1, elapsed: 0.3 }), metrics)
+      .rotation.y;
     expect(loud).not.toBeCloseTo(quiet, 4);
   });
 
   it('ignores amplitude below the noise floor', () => {
-    const a = pose(input({ mood: 'idle', amplitude: 0, elapsed: 0.3 }), metrics).rotation.z;
-    const b = pose(input({ mood: 'idle', amplitude: 0.01, elapsed: 0.3 }), metrics).rotation.z;
+    const a = pose(input({ mood: 'idle', amplitude: 0, elapsed: 0.3 }), metrics).rotation
+      .z;
+    const b = pose(input({ mood: 'idle', amplitude: 0.01, elapsed: 0.3 }), metrics)
+      .rotation.z;
     expect(a).toBeCloseTo(b, 6);
   });
 });
@@ -144,7 +159,10 @@ describe('pose — entrance layer', () => {
   });
 
   it('keeps the model centred on the anchor while scaling in', () => {
-    const p = pose(input({ entranceScale: 0.35, elapsed: 0, reducedMotion: true }), metrics);
+    const p = pose(
+      input({ entranceScale: 0.35, elapsed: 0, reducedMotion: true }),
+      metrics,
+    );
     expect(p.position.x).toBeCloseTo(anchor.center.x - metrics.center.x * p.scale, 5);
   });
 });

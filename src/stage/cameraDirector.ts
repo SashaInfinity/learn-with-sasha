@@ -23,7 +23,11 @@ export function shotFor(mode: StageMode, viewportWidth: number): CameraShotName 
 }
 
 /** Adds the slow idle drift on top of a shot. Never mutates the input. */
-export function withDrift(shot: CameraShot, elapsed: number, reducedMotion: boolean): CameraShot {
+export function withDrift(
+  shot: CameraShot,
+  elapsed: number,
+  reducedMotion: boolean,
+): CameraShot {
   if (reducedMotion) return shot;
   return {
     position: {

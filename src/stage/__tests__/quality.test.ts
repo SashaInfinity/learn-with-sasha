@@ -15,9 +15,9 @@ describe('tierFromHints', () => {
   });
 
   it('returns high for a capable desktop', () => {
-    expect(tierFromHints({ viewportWidth: 1440, deviceMemory: 8, hardwareConcurrency: 8 })).toBe(
-      'high',
-    );
+    expect(
+      tierFromHints({ viewportWidth: 1440, deviceMemory: 8, hardwareConcurrency: 8 }),
+    ).toBe('high');
   });
 
   it('returns high when optional hints are absent on a wide viewport', () => {
@@ -31,7 +31,9 @@ describe('tierFromHints', () => {
 
 describe('tierSettings', () => {
   it('caps pixel ratio lower on the low tier', () => {
-    expect(tierSettings('low').maxPixelRatio).toBeLessThan(tierSettings('high').maxPixelRatio);
+    expect(tierSettings('low').maxPixelRatio).toBeLessThan(
+      tierSettings('high').maxPixelRatio,
+    );
   });
 
   it('drops the extra lights and ground disc on the low tier', () => {

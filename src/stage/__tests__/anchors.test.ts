@@ -1,12 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { rectCenterToNdc, rectVisible, fitScale, anchorToWorld, worldPerPixel } from '../anchors';
+import {
+  rectCenterToNdc,
+  rectVisible,
+  fitScale,
+  anchorToWorld,
+  worldPerPixel,
+} from '../anchors';
 
 const viewport = { width: 1000, height: 500 };
 
 describe('rectCenterToNdc', () => {
   it('maps a centred rect to the NDC origin', () => {
-    const ndc = rectCenterToNdc({ left: 400, top: 200, width: 200, height: 100 }, viewport);
+    const ndc = rectCenterToNdc(
+      { left: 400, top: 200, width: 200, height: 100 },
+      viewport,
+    );
     expect(ndc.x).toBeCloseTo(0);
     expect(ndc.y).toBeCloseTo(0);
   });
@@ -19,18 +28,25 @@ describe('rectCenterToNdc', () => {
 
   it('inverts the y axis relative to CSS coordinates', () => {
     const top = rectCenterToNdc({ left: 400, top: 0, width: 200, height: 100 }, viewport);
-    const bottom = rectCenterToNdc({ left: 400, top: 400, width: 200, height: 100 }, viewport);
+    const bottom = rectCenterToNdc(
+      { left: 400, top: 400, width: 200, height: 100 },
+      viewport,
+    );
     expect(top.y).toBeGreaterThan(bottom.y);
   });
 });
 
 describe('rectVisible', () => {
   it('is true for an on-screen rect', () => {
-    expect(rectVisible({ left: 10, top: 10, width: 100, height: 100 }, viewport)).toBe(true);
+    expect(rectVisible({ left: 10, top: 10, width: 100, height: 100 }, viewport)).toBe(
+      true,
+    );
   });
 
   it('is false for a rect scrolled far above the viewport', () => {
-    expect(rectVisible({ left: 10, top: -400, width: 100, height: 100 }, viewport)).toBe(false);
+    expect(rectVisible({ left: 10, top: -400, width: 100, height: 100 }, viewport)).toBe(
+      false,
+    );
   });
 
   it('is false for a zero-area rect', () => {
@@ -67,19 +83,27 @@ describe('fitScale', () => {
   });
 
   it('clamps to the max bound', () => {
-    const s = fitScale({ left: 0, top: 0, width: 9999, height: 9999 }, 2, 1, wpp, { max: 1.7 });
+    const s = fitScale({ left: 0, top: 0, width: 9999, height: 9999 }, 2, 1, wpp, {
+      max: 1.7,
+    });
     expect(s).toBe(1.7);
   });
 
   it('returns the min bound for a degenerate zero-size model instead of Infinity', () => {
-    const s = fitScale({ left: 0, top: 0, width: 200, height: 200 }, 0, 0, wpp, { min: 0.3 });
+    const s = fitScale({ left: 0, top: 0, width: 200, height: 200 }, 0, 0, wpp, {
+      min: 0.3,
+    });
     expect(Number.isFinite(s)).toBe(true);
     expect(s).toBe(0.3);
   });
 
   it('honours custom fill fractions', () => {
-    const full = fitScale({ left: 0, top: 0, width: 400, height: 200 }, 2, 1, wpp, { fillY: 1 });
-    const half = fitScale({ left: 0, top: 0, width: 400, height: 200 }, 2, 1, wpp, { fillY: 0.5 });
+    const full = fitScale({ left: 0, top: 0, width: 400, height: 200 }, 2, 1, wpp, {
+      fillY: 1,
+    });
+    const half = fitScale({ left: 0, top: 0, width: 400, height: 200 }, 2, 1, wpp, {
+      fillY: 0.5,
+    });
     expect(half).toBeCloseTo(full / 2, 4);
   });
 });

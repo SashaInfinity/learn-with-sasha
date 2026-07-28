@@ -26,49 +26,51 @@
 
 **Created:**
 
-| Path | Responsibility |
-| --- | --- |
-| `vitest.config.ts` | Test runner config (jsdom environment) |
-| `src/stage/types.ts` | Shared types for the whole stage subsystem |
-| `src/stage/anchors.ts` | Rect → NDC → world math, fit scale, visibility |
-| `src/stage/quality.ts` | Device tier detection and per-tier render settings |
-| `src/stage/poseDirector.ts` | Pure pose composition (base + idle + mood + voice + entrance) |
-| `src/stage/cameraDirector.ts` | Named camera shots and idle drift |
-| `src/stage/entrance.ts` | Rocket entrance phase machine, load gating, replay flag |
-| `src/stage/anchorRegistry.ts` | Module-level store of the active anchor element |
-| `src/stage/renderer.ts` | WebGL context, lights, ground, resize, dispose |
-| `src/stage/loadModel.ts` | GLTFLoader + DRACOLoader, progress, bbox normalisation |
-| `src/hooks/useSashaAnchor.ts` | React hook registering a DOM element as the anchor |
-| `src/components/RocketLaunch.tsx` | CSS/SVG rocket overlay driven by `EntranceState` |
-| `src/components/SashaFallback.tsx` | Static image shown when WebGL or the GLB is unavailable |
-| `scripts/build-model.mjs` | gltf-transform pipeline: weld → simplify → draco |
-| `src/stage/__tests__/*.test.ts` | Unit tests for the pure modules |
+| Path                               | Responsibility                                                |
+| ---------------------------------- | ------------------------------------------------------------- |
+| `vitest.config.ts`                 | Test runner config (jsdom environment)                        |
+| `src/stage/types.ts`               | Shared types for the whole stage subsystem                    |
+| `src/stage/anchors.ts`             | Rect → NDC → world math, fit scale, visibility                |
+| `src/stage/quality.ts`             | Device tier detection and per-tier render settings            |
+| `src/stage/poseDirector.ts`        | Pure pose composition (base + idle + mood + voice + entrance) |
+| `src/stage/cameraDirector.ts`      | Named camera shots and idle drift                             |
+| `src/stage/entrance.ts`            | Rocket entrance phase machine, load gating, replay flag       |
+| `src/stage/anchorRegistry.ts`      | Module-level store of the active anchor element               |
+| `src/stage/renderer.ts`            | WebGL context, lights, ground, resize, dispose                |
+| `src/stage/loadModel.ts`           | GLTFLoader + DRACOLoader, progress, bbox normalisation        |
+| `src/hooks/useSashaAnchor.ts`      | React hook registering a DOM element as the anchor            |
+| `src/components/RocketLaunch.tsx`  | CSS/SVG rocket overlay driven by `EntranceState`              |
+| `src/components/SashaFallback.tsx` | Static image shown when WebGL or the GLB is unavailable       |
+| `scripts/build-model.mjs`          | gltf-transform pipeline: weld → simplify → draco              |
+| `src/stage/__tests__/*.test.ts`    | Unit tests for the pure modules                               |
 
 **Modified:**
 
-| Path | Change |
-| --- | --- |
-| `src/components/SashaStage.tsx` | Rewritten as a thin wrapper (370 → ~180 lines) |
-| `src/components/LandingPage.tsx` | Anchor + redesign |
-| `src/components/AuthScreen.tsx` | Anchor + redesign (fixes the overlap) |
-| `src/components/ChatHome.tsx` | Anchor + redesign + mobile presence |
-| `src/components/AppShell.tsx` | Wire entrance state and fallback |
-| `src/index.css` | Design tokens, rocket keyframes, redesign styles |
-| `index.html` | Preload hint for the compressed GLB |
-| `package.json` | `test`, `models:build` scripts; devDependencies |
-| `.gitignore` | Ensure `public/draco/` is NOT ignored |
+| Path                             | Change                                           |
+| -------------------------------- | ------------------------------------------------ |
+| `src/components/SashaStage.tsx`  | Rewritten as a thin wrapper (370 → ~180 lines)   |
+| `src/components/LandingPage.tsx` | Anchor + redesign                                |
+| `src/components/AuthScreen.tsx`  | Anchor + redesign (fixes the overlap)            |
+| `src/components/ChatHome.tsx`    | Anchor + redesign + mobile presence              |
+| `src/components/AppShell.tsx`    | Wire entrance state and fallback                 |
+| `src/index.css`                  | Design tokens, rocket keyframes, redesign styles |
+| `index.html`                     | Preload hint for the compressed GLB              |
+| `package.json`                   | `test`, `models:build` scripts; devDependencies  |
+| `.gitignore`                     | Ensure `public/draco/` is NOT ignored            |
 
 ---
 
 ### Task 1: Test harness and shared types
 
 **Files:**
+
 - Create: `vitest.config.ts`
 - Create: `src/stage/types.ts`
 - Create: `src/stage/__tests__/types.test.ts`
 - Modify: `package.json`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: every type below. Later tasks import from `src/stage/types.ts`.
 
@@ -119,13 +121,7 @@ export type StageMode = 'hero' | 'lesson' | 'hidden';
 
 /** Interaction beat driving the mood overlay. Mirrors SashaMood in VoiceContext. */
 export type SashaMoodName =
-  | 'idle'
-  | 'wave'
-  | 'thinking'
-  | 'talking'
-  | 'celebrate'
-  | 'shake'
-  | 'attentive';
+  'idle' | 'wave' | 'thinking' | 'talking' | 'celebrate' | 'shake' | 'attentive';
 
 /** Render quality bucket chosen from device hints. */
 export type QualityTier = 'high' | 'low';
@@ -314,10 +310,12 @@ git commit -m "test: add vitest harness and shared stage types"
 ### Task 2: Anchor math
 
 **Files:**
+
 - Create: `src/stage/anchors.ts`
 - Create: `src/stage/__tests__/anchors.test.ts`
 
 **Interfaces:**
+
 - Consumes: `AnchorRect`, `Viewport`, `Vec3`, `AnchorFit` from `src/stage/types.ts`.
 - Produces:
   - `rectCenterToNdc(rect: AnchorRect, viewport: Viewport): { x: number; y: number }`
@@ -348,7 +346,10 @@ const viewport = { width: 1000, height: 500 };
 
 describe('rectCenterToNdc', () => {
   it('maps a centred rect to the NDC origin', () => {
-    const ndc = rectCenterToNdc({ left: 400, top: 200, width: 200, height: 100 }, viewport);
+    const ndc = rectCenterToNdc(
+      { left: 400, top: 200, width: 200, height: 100 },
+      viewport,
+    );
     expect(ndc.x).toBeCloseTo(0);
     expect(ndc.y).toBeCloseTo(0);
   });
@@ -361,18 +362,25 @@ describe('rectCenterToNdc', () => {
 
   it('inverts the y axis relative to CSS coordinates', () => {
     const top = rectCenterToNdc({ left: 400, top: 0, width: 200, height: 100 }, viewport);
-    const bottom = rectCenterToNdc({ left: 400, top: 400, width: 200, height: 100 }, viewport);
+    const bottom = rectCenterToNdc(
+      { left: 400, top: 400, width: 200, height: 100 },
+      viewport,
+    );
     expect(top.y).toBeGreaterThan(bottom.y);
   });
 });
 
 describe('rectVisible', () => {
   it('is true for an on-screen rect', () => {
-    expect(rectVisible({ left: 10, top: 10, width: 100, height: 100 }, viewport)).toBe(true);
+    expect(rectVisible({ left: 10, top: 10, width: 100, height: 100 }, viewport)).toBe(
+      true,
+    );
   });
 
   it('is false for a rect scrolled far above the viewport', () => {
-    expect(rectVisible({ left: 10, top: -400, width: 100, height: 100 }, viewport)).toBe(false);
+    expect(rectVisible({ left: 10, top: -400, width: 100, height: 100 }, viewport)).toBe(
+      false,
+    );
   });
 
   it('is false for a zero-area rect', () => {
@@ -409,19 +417,27 @@ describe('fitScale', () => {
   });
 
   it('clamps to the max bound', () => {
-    const s = fitScale({ left: 0, top: 0, width: 9999, height: 9999 }, 2, 1, wpp, { max: 1.7 });
+    const s = fitScale({ left: 0, top: 0, width: 9999, height: 9999 }, 2, 1, wpp, {
+      max: 1.7,
+    });
     expect(s).toBe(1.7);
   });
 
   it('returns the min bound for a degenerate zero-size model instead of Infinity', () => {
-    const s = fitScale({ left: 0, top: 0, width: 200, height: 200 }, 0, 0, wpp, { min: 0.3 });
+    const s = fitScale({ left: 0, top: 0, width: 200, height: 200 }, 0, 0, wpp, {
+      min: 0.3,
+    });
     expect(Number.isFinite(s)).toBe(true);
     expect(s).toBe(0.3);
   });
 
   it('honours custom fill fractions', () => {
-    const full = fitScale({ left: 0, top: 0, width: 400, height: 200 }, 2, 1, wpp, { fillY: 1 });
-    const half = fitScale({ left: 0, top: 0, width: 400, height: 200 }, 2, 1, wpp, { fillY: 0.5 });
+    const full = fitScale({ left: 0, top: 0, width: 400, height: 200 }, 2, 1, wpp, {
+      fillY: 1,
+    });
+    const half = fitScale({ left: 0, top: 0, width: 400, height: 200 }, 2, 1, wpp, {
+      fillY: 0.5,
+    });
     expect(half).toBeCloseTo(full / 2, 4);
   });
 });
@@ -577,10 +593,12 @@ git commit -m "feat(stage): add tested anchor math replacing duplicated fit logi
 ### Task 3: Quality tiers
 
 **Files:**
+
 - Create: `src/stage/quality.ts`
 - Create: `src/stage/__tests__/quality.test.ts`
 
 **Interfaces:**
+
 - Consumes: `DeviceHints`, `QualityTier`, `TierSettings` from `src/stage/types.ts`.
 - Produces:
   - `tierFromHints(hints: DeviceHints): QualityTier`
@@ -672,10 +690,7 @@ export function tierFromHints(hints: DeviceHints): QualityTier {
   if (hints.deviceMemory !== undefined && hints.deviceMemory < MIN_DEVICE_MEMORY) {
     return 'low';
   }
-  if (
-    hints.hardwareConcurrency !== undefined &&
-    hints.hardwareConcurrency < MIN_CORES
-  ) {
+  if (hints.hardwareConcurrency !== undefined && hints.hardwareConcurrency < MIN_CORES) {
     return 'low';
   }
   return 'high';
@@ -728,10 +743,12 @@ git commit -m "feat(stage): add device quality tiering and reduced-motion check"
 ### Task 4: Pose director
 
 **Files:**
+
 - Create: `src/stage/poseDirector.ts`
 - Create: `src/stage/__tests__/poseDirector.test.ts`
 
 **Interfaces:**
+
 - Consumes: `PoseInput`, `TargetPose`, `AnchorFit`, `ModelMetrics` from `src/stage/types.ts`.
 - Produces:
   - `pose(input: PoseInput, metrics: ModelMetrics): TargetPose`
@@ -789,7 +806,10 @@ describe('pose — base placement', () => {
 
   it('falls back to the centre anchor when none is registered', () => {
     const p = pose(input({ anchor: null, reducedMotion: true }), metrics);
-    const expected = pose(input({ anchor: FALLBACK_ANCHOR, reducedMotion: true }), metrics);
+    const expected = pose(
+      input({ anchor: FALLBACK_ANCHOR, reducedMotion: true }),
+      metrics,
+    );
     expect(p.position.x).toBeCloseTo(expected.position.x, 6);
   });
 
@@ -818,7 +838,10 @@ describe('pose — idle layer', () => {
 
   it('produces no motion at all under reduced motion', () => {
     const a = pose(input({ elapsed: 0, reducedMotion: true }), metrics);
-    const b = pose(input({ elapsed: 7.7, reducedMotion: true, pointer: { x: 1, y: 1 } }), metrics);
+    const b = pose(
+      input({ elapsed: 7.7, reducedMotion: true, pointer: { x: 1, y: 1 } }),
+      metrics,
+    );
     expect(a.position.y).toBeCloseTo(b.position.y, 6);
     expect(a.rotation.y).toBeCloseTo(b.rotation.y, 6);
     expect(a.rotation.x).toBeCloseTo(b.rotation.x, 6);
@@ -834,7 +857,9 @@ describe('pose — mood layer', () => {
   });
 
   it('thinking pitches the model downward', () => {
-    expect(pose(input({ mood: 'thinking', elapsed: 0 }), metrics).rotation.x).toBeGreaterThan(0.1);
+    expect(
+      pose(input({ mood: 'thinking', elapsed: 0 }), metrics).rotation.x,
+    ).toBeGreaterThan(0.1);
   });
 
   it('attentive leans forward less than thinking', () => {
@@ -857,7 +882,10 @@ describe('pose — mood layer', () => {
   });
 
   it('suppresses mood motion under reduced motion', () => {
-    const a = pose(input({ mood: 'celebrate', elapsed: 0.2, reducedMotion: true }), metrics);
+    const a = pose(
+      input({ mood: 'celebrate', elapsed: 0.2, reducedMotion: true }),
+      metrics,
+    );
     const b = pose(input({ mood: 'idle', elapsed: 0.2, reducedMotion: true }), metrics);
     expect(a.position.y).toBeCloseTo(b.position.y, 6);
     expect(a.rotation.z).toBeCloseTo(b.rotation.z, 6);
@@ -866,14 +894,18 @@ describe('pose — mood layer', () => {
 
 describe('pose — voice layer', () => {
   it('adds yaw wobble proportional to amplitude', () => {
-    const quiet = pose(input({ mood: 'talking', amplitude: 0, elapsed: 0.3 }), metrics).rotation.y;
-    const loud = pose(input({ mood: 'talking', amplitude: 1, elapsed: 0.3 }), metrics).rotation.y;
+    const quiet = pose(input({ mood: 'talking', amplitude: 0, elapsed: 0.3 }), metrics)
+      .rotation.y;
+    const loud = pose(input({ mood: 'talking', amplitude: 1, elapsed: 0.3 }), metrics)
+      .rotation.y;
     expect(loud).not.toBeCloseTo(quiet, 4);
   });
 
   it('ignores amplitude below the noise floor', () => {
-    const a = pose(input({ mood: 'idle', amplitude: 0, elapsed: 0.3 }), metrics).rotation.z;
-    const b = pose(input({ mood: 'idle', amplitude: 0.01, elapsed: 0.3 }), metrics).rotation.z;
+    const a = pose(input({ mood: 'idle', amplitude: 0, elapsed: 0.3 }), metrics).rotation
+      .z;
+    const b = pose(input({ mood: 'idle', amplitude: 0.01, elapsed: 0.3 }), metrics)
+      .rotation.z;
     expect(a).toBeCloseTo(b, 6);
   });
 });
@@ -890,7 +922,10 @@ describe('pose — entrance layer', () => {
   });
 
   it('keeps the model centred on the anchor while scaling in', () => {
-    const p = pose(input({ entranceScale: 0.35, elapsed: 0, reducedMotion: true }), metrics);
+    const p = pose(
+      input({ entranceScale: 0.35, elapsed: 0, reducedMotion: true }),
+      metrics,
+    );
     expect(p.position.x).toBeCloseTo(anchor.center.x - metrics.center.x * p.scale, 5);
   });
 });
@@ -1024,10 +1059,12 @@ git commit -m "feat(stage): extract pose composition into a pure tested director
 ### Task 5: Camera director
 
 **Files:**
+
 - Create: `src/stage/cameraDirector.ts`
 - Create: `src/stage/__tests__/cameraDirector.test.ts`
 
 **Interfaces:**
+
 - Consumes: `CameraShot`, `CameraShotName`, `StageMode` from `src/stage/types.ts`.
 - Produces:
   - `SHOTS: Record<CameraShotName, CameraShot>`
@@ -1167,10 +1204,12 @@ git commit -m "feat(stage): add named camera shots with idle drift"
 ### Task 6: Entrance phase machine
 
 **Files:**
+
 - Create: `src/stage/entrance.ts`
 - Create: `src/stage/__tests__/entrance.test.ts`
 
 **Interfaces:**
+
 - Consumes: `EntranceInput`, `EntranceState`, `EntrancePhase` from `src/stage/types.ts`.
 - Produces:
   - `entranceState(input: EntranceInput): EntranceState`
@@ -1212,11 +1251,15 @@ describe('entranceState — phases', () => {
   });
 
   it('enters burst after the launch window', () => {
-    expect(entranceState(input({ elapsed: 0.9, gateReleasedAt: 0.1 })).phase).toBe('burst');
+    expect(entranceState(input({ elapsed: 0.9, gateReleasedAt: 0.1 })).phase).toBe(
+      'burst',
+    );
   });
 
   it('enters reveal once the gate has released', () => {
-    expect(entranceState(input({ elapsed: 1.4, gateReleasedAt: 0.1 })).phase).toBe('reveal');
+    expect(entranceState(input({ elapsed: 1.4, gateReleasedAt: 0.1 })).phase).toBe(
+      'reveal',
+    );
   });
 
   it('reaches done after the settle window', () => {
@@ -1264,7 +1307,9 @@ describe('entranceState — load gating', () => {
 describe('entranceState — reveal ramp', () => {
   it('keeps the model invisible through launch and burst', () => {
     expect(entranceState(input({ elapsed: 0.4 })).modelOpacity).toBe(0);
-    expect(entranceState(input({ elapsed: 1.0, gateReleasedAt: 0 })).modelOpacity).toBe(0);
+    expect(entranceState(input({ elapsed: 1.0, gateReleasedAt: 0 })).modelOpacity).toBe(
+      0,
+    );
   });
 
   it('ramps opacity to full by the end of reveal', () => {
@@ -1280,8 +1325,13 @@ describe('entranceState — reveal ramp', () => {
   });
 
   it('flares during burst and fades by the end of reveal', () => {
-    expect(entranceState(input({ elapsed: 0.95, gateReleasedAt: 0 })).flare).toBeGreaterThan(0.4);
-    expect(entranceState(input({ elapsed: 1.9, gateReleasedAt: 0 })).flare).toBeCloseTo(0, 1);
+    expect(
+      entranceState(input({ elapsed: 0.95, gateReleasedAt: 0 })).flare,
+    ).toBeGreaterThan(0.4);
+    expect(entranceState(input({ elapsed: 1.9, gateReleasedAt: 0 })).flare).toBeCloseTo(
+      0,
+      1,
+    );
   });
 });
 
@@ -1295,20 +1345,26 @@ describe('entranceState — skip and reduced motion', () => {
   });
 
   it('reduced motion skips the rocket and fades the model in quickly', () => {
-    const mid = entranceState(input({ elapsed: 0.1, gateReleasedAt: 0, reducedMotion: true }));
+    const mid = entranceState(
+      input({ elapsed: 0.1, gateReleasedAt: 0, reducedMotion: true }),
+    );
     expect(mid.rocketProgress).toBe(0);
     expect(mid.flare).toBe(0);
     expect(mid.modelScale).toBe(1);
     expect(mid.modelOpacity).toBeGreaterThan(0);
     expect(mid.modelOpacity).toBeLessThan(1);
 
-    const done = entranceState(input({ elapsed: 0.3, gateReleasedAt: 0, reducedMotion: true }));
+    const done = entranceState(
+      input({ elapsed: 0.3, gateReleasedAt: 0, reducedMotion: true }),
+    );
     expect(done.modelOpacity).toBeCloseTo(1, 2);
     expect(done.complete).toBe(true);
   });
 
   it('reduced motion still waits for the model to be ready', () => {
-    const s = entranceState(input({ elapsed: 5, gateReleasedAt: null, reducedMotion: true }));
+    const s = entranceState(
+      input({ elapsed: 5, gateReleasedAt: null, reducedMotion: true }),
+    );
     expect(s.modelOpacity).toBe(0);
     expect(s.complete).toBe(false);
   });
@@ -1494,6 +1550,7 @@ git commit -m "feat(stage): add load-gated rocket entrance phase machine"
 ### Task 7: Asset pipeline — Draco compression and simplification
 
 **Files:**
+
 - Create: `scripts/build-model.mjs`
 - Create: `public/draco/` (copied decoder files)
 - Modify: `package.json`
@@ -1501,6 +1558,7 @@ git commit -m "feat(stage): add load-gated rocket entrance phase machine"
 - Modify: `index.html`
 
 **Interfaces:**
+
 - Consumes: nothing from earlier tasks.
 - Produces: `public/models/Sasha-Character.draco.glb` (committed) and `public/draco/` decoder files, both consumed by Task 9's `loadModel.ts`.
 
@@ -1551,12 +1609,10 @@ function countTriangles(document) {
   return Math.round(total);
 }
 
-const io = new NodeIO()
-  .registerExtensions(ALL_EXTENSIONS)
-  .registerDependencies({
-    'draco3d.decoder': await draco3d.createDecoderModule(),
-    'draco3d.encoder': await draco3d.createEncoderModule(),
-  });
+const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
+  'draco3d.decoder': await draco3d.createDecoderModule(),
+  'draco3d.encoder': await draco3d.createEncoderModule(),
+});
 
 await MeshoptSimplifier.ready;
 
@@ -1567,7 +1623,11 @@ await document.transform(
   dedup(),
   prune(),
   weld(),
-  simplify({ simplifier: MeshoptSimplifier, ratio: SIMPLIFY_RATIO, error: SIMPLIFY_ERROR }),
+  simplify({
+    simplifier: MeshoptSimplifier,
+    ratio: SIMPLIFY_RATIO,
+    error: SIMPLIFY_ERROR,
+  }),
   draco(),
 );
 
@@ -1642,7 +1702,13 @@ Expected: no output (nothing ignored). If either is ignored, add a negation to `
 Insert immediately after the existing `<link rel="apple-touch-icon" ...>` line:
 
 ```html
-<link rel="preload" as="fetch" type="model/gltf-binary" crossorigin href="/models/Sasha-Character.draco.glb" />
+<link
+  rel="preload"
+  as="fetch"
+  type="model/gltf-binary"
+  crossorigin
+  href="/models/Sasha-Character.draco.glb"
+/>
 ```
 
 - [ ] **Step 9: Verify the build still works**
@@ -1662,11 +1728,13 @@ git commit -m "build: add Draco geometry pipeline and preload the compressed mod
 ### Task 8: Anchor registry and React hook
 
 **Files:**
+
 - Create: `src/stage/anchorRegistry.ts`
 - Create: `src/hooks/useSashaAnchor.ts`
 - Create: `src/stage/__tests__/anchorRegistry.test.ts`
 
 **Interfaces:**
+
 - Consumes: `AnchorRect` from `src/stage/types.ts`.
 - Produces:
   - `pushAnchor(id: string, el: HTMLElement, opts?: AnchorOptions): void`
@@ -1694,7 +1762,14 @@ import {
 function makeEl(rect: { left: number; top: number; width: number; height: number }) {
   const el = document.createElement('div');
   el.getBoundingClientRect = () =>
-    ({ ...rect, right: rect.left + rect.width, bottom: rect.top + rect.height, x: rect.left, y: rect.top, toJSON: () => ({}) }) as DOMRect;
+    ({
+      ...rect,
+      right: rect.left + rect.width,
+      bottom: rect.top + rect.height,
+      x: rect.left,
+      y: rect.top,
+      toJSON: () => ({}),
+    }) as DOMRect;
   document.body.appendChild(el);
   return el;
 }
@@ -1879,10 +1954,12 @@ git commit -m "feat(stage): add anchor registry and useSashaAnchor hook"
 ### Task 9: Renderer and model loader
 
 **Files:**
+
 - Create: `src/stage/renderer.ts`
 - Create: `src/stage/loadModel.ts`
 
 **Interfaces:**
+
 - Consumes: `QualityTier`, `TierSettings`, `ModelMetrics` from `src/stage/types.ts`; `tierSettings` from `src/stage/quality.ts`.
 - Produces:
   - `createStage(canvas: HTMLCanvasElement, tier: QualityTier): Stage | null`
@@ -1916,15 +1993,16 @@ export interface Stage {
 }
 
 /** Returns null when WebGL is unavailable — callers must show a fallback. */
-export function createStage(
-  canvas: HTMLCanvasElement,
-  tier: QualityTier,
-): Stage | null {
+export function createStage(canvas: HTMLCanvasElement, tier: QualityTier): Stage | null {
   const settings = tierSettings(tier);
 
   let renderer: THREE.WebGLRenderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: tier === 'high', alpha: true });
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: tier === 'high',
+      alpha: true,
+    });
   } catch (err) {
     console.warn('SashaStage: WebGL unavailable', err);
     return null;
@@ -2123,6 +2201,7 @@ git commit -m "feat(stage): add tier-aware renderer and Draco model loader with 
 ### Task 10: Rewire SashaStage and add the rocket overlay
 
 **Files:**
+
 - Modify: `src/components/SashaStage.tsx` (full rewrite)
 - Create: `src/components/RocketLaunch.tsx`
 - Create: `src/components/SashaFallback.tsx`
@@ -2130,6 +2209,7 @@ git commit -m "feat(stage): add tier-aware renderer and Draco model loader with 
 - Modify: `src/components/AppShell.tsx`
 
 **Interfaces:**
+
 - Consumes: everything from Tasks 2–9.
 - Produces:
   - `SashaStage` props: `{ mode: StageMode; mood?: SashaMood }` — unchanged, so `AppShell` keeps working.
@@ -2168,7 +2248,10 @@ export default function RocketLaunch({ state, loadProgress }: RocketLaunchProps)
     <div className="lws-rocket-layer" aria-hidden>
       <div
         className="lws-rocket-flare"
-        style={{ opacity: state.flare * 0.9, transform: `scale(${0.4 + state.flare * 2.4})` }}
+        style={{
+          opacity: state.flare * 0.9,
+          transform: `scale(${0.4 + state.flare * 2.4})`,
+        }}
       />
       <div
         className="lws-rocket"
@@ -2263,8 +2346,14 @@ Append before the `/* --- markdown ... */` block:
   animation: lwsFlame 0.14s ease-in-out infinite alternate;
 }
 @keyframes lwsFlame {
-  from { transform: scaleY(0.75); opacity: 0.85; }
-  to   { transform: scaleY(1.25); opacity: 1; }
+  from {
+    transform: scaleY(0.75);
+    opacity: 0.85;
+  }
+  to {
+    transform: scaleY(1.25);
+    opacity: 1;
+  }
 }
 .lws-rocket-ring {
   position: absolute;
@@ -2279,7 +2368,12 @@ Append before the `/* --- markdown ... */` block:
   height: 220px;
   margin: -110px 0 0 -110px;
   border-radius: 9999px;
-  background: radial-gradient(circle, #fff7e0 0%, var(--lws-amber-light) 45%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    #fff7e0 0%,
+    var(--lws-amber-light) 45%,
+    transparent 70%
+  );
   will-change: transform, opacity;
 }
 
@@ -2296,7 +2390,9 @@ Append before the `/* --- markdown ... */` block:
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lws-rocket-layer { display: none; }
+  .lws-rocket-layer {
+    display: none;
+  }
 }
 ```
 
@@ -2330,17 +2426,8 @@ import {
 } from '../stage/anchors';
 import { pose } from '../stage/poseDirector';
 import { SHOTS, shotFor, withDrift } from '../stage/cameraDirector';
-import {
-  entranceState,
-  hasSeenEntrance,
-  markEntranceSeen,
-} from '../stage/entrance';
-import type {
-  AnchorFit,
-  EntranceState,
-  ModelMetrics,
-  StageMode,
-} from '../stage/types';
+import { entranceState, hasSeenEntrance, markEntranceSeen } from '../stage/entrance';
+import type { AnchorFit, EntranceState, ModelMetrics, StageMode } from '../stage/types';
 import { getVoiceAmplitude } from '../context/VoiceContext';
 import type { SashaMood } from '../context/VoiceContext';
 import RocketLaunch from './RocketLaunch';
@@ -2524,7 +2611,10 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       }
 
       const easeK = Math.min(delta * 5, 1);
-      curPos.lerp(new THREE.Vector3(target.position.x, target.position.y, target.position.z), easeK);
+      curPos.lerp(
+        new THREE.Vector3(target.position.x, target.position.y, target.position.z),
+        easeK,
+      );
       curScale.lerp(new THREE.Vector3(target.scale, target.scale, target.scale), easeK);
       curRotX += (target.rotation.x - curRotX) * easeK;
       curRotY += (target.rotation.y - curRotY) * easeK;
@@ -2543,9 +2633,19 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       );
 
       // --- camera ---------------------------------------------------------
-      const shot = withDrift(SHOTS[shotFor(currentMode, viewport.width)], elapsed, reducedMotion);
-      camPos.lerp(new THREE.Vector3(shot.position.x, shot.position.y, shot.position.z), easeK * 0.6);
-      camTarget.lerp(new THREE.Vector3(shot.target.x, shot.target.y, shot.target.z), easeK * 0.6);
+      const shot = withDrift(
+        SHOTS[shotFor(currentMode, viewport.width)],
+        elapsed,
+        reducedMotion,
+      );
+      camPos.lerp(
+        new THREE.Vector3(shot.position.x, shot.position.y, shot.position.z),
+        easeK * 0.6,
+      );
+      camTarget.lerp(
+        new THREE.Vector3(shot.target.x, shot.target.y, shot.target.z),
+        easeK * 0.6,
+      );
       stage.camera.position.copy(camPos);
       stage.camera.lookAt(camTarget);
 
@@ -2632,9 +2732,11 @@ git commit -m "feat(stage): rewire SashaStage onto pure modules with a rocket en
 ### Task 11: Design tokens
 
 **Files:**
+
 - Modify: `src/index.css`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: CSS custom properties consumed by Tasks 12–14:
   `--lws-space-1..6`, `--lws-radius-sm/md/lg/xl`, `--lws-shadow-1/2/3`, `--lws-ease`, `--lws-dur-fast/base`.
@@ -2644,29 +2746,29 @@ git commit -m "feat(stage): rewire SashaStage onto pure modules with a rocket en
 In `src/index.css`, inside the existing `:root` block (after `--lws-header-h`), add:
 
 ```css
-  /* Spacing rhythm — components use these instead of ad hoc padding. */
-  --lws-space-1: 4px;
-  --lws-space-2: 8px;
-  --lws-space-3: 12px;
-  --lws-space-4: 16px;
-  --lws-space-5: 24px;
-  --lws-space-6: 32px;
+/* Spacing rhythm — components use these instead of ad hoc padding. */
+--lws-space-1: 4px;
+--lws-space-2: 8px;
+--lws-space-3: 12px;
+--lws-space-4: 16px;
+--lws-space-5: 24px;
+--lws-space-6: 32px;
 
-  /* Corner radii. */
-  --lws-radius-sm: 8px;
-  --lws-radius-md: 12px;
-  --lws-radius-lg: 16px;
-  --lws-radius-xl: 24px;
+/* Corner radii. */
+--lws-radius-sm: 8px;
+--lws-radius-md: 12px;
+--lws-radius-lg: 16px;
+--lws-radius-xl: 24px;
 
-  /* Elevation scale — three steps, used consistently across cards. */
-  --lws-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --lws-shadow-2: 0 4px 16px rgba(15, 23, 42, 0.08);
-  --lws-shadow-3: 0 12px 40px rgba(15, 23, 42, 0.12);
+/* Elevation scale — three steps, used consistently across cards. */
+--lws-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06);
+--lws-shadow-2: 0 4px 16px rgba(15, 23, 42, 0.08);
+--lws-shadow-3: 0 12px 40px rgba(15, 23, 42, 0.12);
 
-  /* Motion — one easing curve and two durations for every transition. */
-  --lws-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --lws-dur-fast: 140ms;
-  --lws-dur-base: 240ms;
+/* Motion — one easing curve and two durations for every transition. */
+--lws-ease: cubic-bezier(0.22, 1, 0.36, 1);
+--lws-dur-fast: 140ms;
+--lws-dur-base: 240ms;
 ```
 
 - [ ] **Step 2: Add the shared surface and interaction classes**
@@ -2695,8 +2797,13 @@ Append after the token block, before `.lws-header`:
     box-shadow var(--lws-dur-fast) var(--lws-ease),
     opacity var(--lws-dur-fast) var(--lws-ease);
 }
-.lws-lift:hover { transform: translateY(-2px); box-shadow: var(--lws-shadow-2); }
-.lws-lift:active { transform: translateY(0); }
+.lws-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lws-shadow-2);
+}
+.lws-lift:active {
+  transform: translateY(0);
+}
 
 /* Staggered entrance for lists and headline words. */
 .lws-rise {
@@ -2705,7 +2812,10 @@ Append after the token block, before `.lws-header`:
   animation: lwsRise var(--lws-dur-base) var(--lws-ease) forwards;
 }
 @keyframes lwsRise {
-  to { opacity: 1; transform: translateY(0); }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 ```
 
@@ -2726,10 +2836,12 @@ git commit -m "style: add spacing, radius, elevation and motion design tokens"
 ### Task 12: Landing page — anchor and redesign
 
 **Files:**
+
 - Modify: `src/components/LandingPage.tsx`
 - Modify: `src/index.css`
 
 **Interfaces:**
+
 - Consumes: `useSashaAnchor` (Task 8), tokens (Task 11).
 - Produces: an anchor registered under the id `'landing'`.
 
@@ -2785,7 +2897,11 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                   className="lws-rise inline-block"
                   style={{ animationDelay: `${1.3 + i * 0.09}s` }}
                 >
-                  {word === 'Learn' ? word : <span className="text-amber-600">{word}</span>}
+                  {word === 'Learn' ? (
+                    word
+                  ) : (
+                    <span className="text-amber-600">{word}</span>
+                  )}
                   {i < HEADLINE_WORDS.length - 1 && ' '}
                 </span>
               ))}
@@ -2869,7 +2985,10 @@ Replace the existing `/* --- landing mobile legibility --- */` block with:
   border-radius: var(--lws-radius-md);
   box-shadow: var(--lws-shadow-1);
 }
-.lws-cta:focus-visible { outline: 2px solid var(--lws-amber-dark); outline-offset: 2px; }
+.lws-cta:focus-visible {
+  outline: 2px solid var(--lws-amber-dark);
+  outline-offset: 2px;
+}
 
 @media (min-width: 1024px) {
   .lws-landing-grid {
@@ -2883,7 +3002,11 @@ Replace the existing `/* --- landing mobile legibility --- */` block with:
   }
 }
 @media (min-width: 640px) and (max-width: 1023px) {
-  .lws-landing-anchor { width: 40vw; height: 46vh; margin: 0 auto; }
+  .lws-landing-anchor {
+    width: 40vw;
+    height: 46vh;
+    margin: 0 auto;
+  }
 }
 
 /* Below lg, Sasha renders behind the landing text. Keep the copy legible. */
@@ -2921,10 +3044,12 @@ git commit -m "feat(landing): anchor Sasha to layout and add staggered entrance"
 ### Task 13: Login page — anchor, alignment fix and redesign
 
 **Files:**
+
 - Modify: `src/components/AuthScreen.tsx`
 - Modify: `src/index.css`
 
 **Interfaces:**
+
 - Consumes: `useSashaAnchor` (Task 8), tokens (Task 11).
 - Produces: an anchor registered under the id `'auth'`.
 
@@ -3046,8 +3171,18 @@ export default function AuthScreen() {
               </p>
             )}
 
-            <button type="submit" disabled={busy} className="lws-cta lws-lift w-full flex items-center justify-center gap-2 disabled:opacity-60">
-              {busy && <span className="lws-voice-spinner" aria-hidden style={{ width: 16, height: 16 }} />}
+            <button
+              type="submit"
+              disabled={busy}
+              className="lws-cta lws-lift w-full flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {busy && (
+                <span
+                  className="lws-voice-spinner"
+                  aria-hidden
+                  style={{ width: 16, height: 16 }}
+                />
+              )}
               {busy ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
@@ -3103,8 +3238,15 @@ Append after the landing block:
   box-shadow: var(--lws-shadow-1);
 }
 /* Mobile: a compact strip above the card. */
-.lws-auth-anchor { width: 100%; height: 180px; }
-.lws-auth-card { padding: var(--lws-space-6); position: relative; z-index: 4; }
+.lws-auth-anchor {
+  width: 100%;
+  height: 180px;
+}
+.lws-auth-card {
+  padding: var(--lws-space-6);
+  position: relative;
+  z-index: 4;
+}
 
 .lws-auth-error {
   font-size: 12px;
@@ -3116,15 +3258,29 @@ Append after the landing block:
   animation: lwsShakeIn 0.4s var(--lws-ease);
 }
 @keyframes lwsShakeIn {
-  0%   { transform: translateX(0); opacity: 0; }
-  25%  { transform: translateX(-5px); opacity: 1; }
-  50%  { transform: translateX(4px); }
-  75%  { transform: translateX(-2px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  25% {
+    transform: translateX(-5px);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 /* Floating-label text field. */
-.lws-field { position: relative; }
+.lws-field {
+  position: relative;
+}
 .lws-field input {
   width: 100%;
   background: #f8fafc;
@@ -3160,11 +3316,18 @@ Append after the landing block:
 }
 
 @media (min-width: 640px) {
-  .lws-auth-anchor { height: 240px; }
+  .lws-auth-anchor {
+    height: 240px;
+  }
 }
 @media (min-width: 1024px) {
-  .lws-auth-grid { grid-template-columns: 1fr 420px; gap: var(--lws-space-6); }
-  .lws-auth-anchor { height: clamp(360px, 58vh, 560px); }
+  .lws-auth-grid {
+    grid-template-columns: 1fr 420px;
+    gap: var(--lws-space-6);
+  }
+  .lws-auth-anchor {
+    height: clamp(360px, 58vh, 560px);
+  }
 }
 ```
 
@@ -3190,10 +3353,12 @@ git commit -m "fix(auth): anchor Sasha to the reserved column and restyle the fo
 ### Task 14: Dashboard — anchor, mobile presence and redesign
 
 **Files:**
+
 - Modify: `src/components/ChatHome.tsx`
 - Modify: `src/index.css`
 
 **Interfaces:**
+
 - Consumes: `useSashaAnchor` (Task 8), `SASHA_DOCK_ID` from `src/components/learnWithSasha/constants.ts`, tokens (Task 11).
 - Produces: an anchor registered under the id `'dock'`.
 
@@ -3211,10 +3376,10 @@ import { SASHA_DOCK_ID } from './learnWithSasha/constants';
 Inside the component, next to the other refs (after `activeIdRef`), add:
 
 ```tsx
-  // Sasha's dock. Registered as the stage anchor so the 3D character is placed
-  // by layout — on desktop the mascot card, on mobile the compact strip.
-  const dockRef = useRef<HTMLDivElement | null>(null);
-  useSashaAnchor(dockRef, 'dock', { fillY: 0.94, max: 1.4 });
+// Sasha's dock. Registered as the stage anchor so the 3D character is placed
+// by layout — on desktop the mascot card, on mobile the compact strip.
+const dockRef = useRef<HTMLDivElement | null>(null);
+useSashaAnchor(dockRef, 'dock', { fillY: 0.94, max: 1.4 });
 ```
 
 - [ ] **Step 2: Attach the ref to the dock element**
@@ -3222,13 +3387,13 @@ Inside the component, next to the other refs (after `activeIdRef`), add:
 Replace this line in the mascot card:
 
 ```tsx
-            <div id="sasha-dock" className="lws-dock" />
+<div id="sasha-dock" className="lws-dock" />
 ```
 
 with:
 
 ```tsx
-            <div ref={dockRef} id={SASHA_DOCK_ID} className="lws-dock" />
+<div ref={dockRef} id={SASHA_DOCK_ID} className="lws-dock" />
 ```
 
 - [ ] **Step 3: Make the mascot card visible on mobile in compact form**
@@ -3269,7 +3434,9 @@ Replace the existing `.lws-dock` rule with:
   aspect-ratio: 1 / 1;
   margin: 0 auto;
 }
-.lws-dock-wrap { margin: var(--lws-space-6) 0; }
+.lws-dock-wrap {
+  margin: var(--lws-space-6) 0;
+}
 
 /* Below lg the mascot card collapses to a compact horizontal strip so mobile
    users still see Sasha (previously the whole section was hidden). */
@@ -3280,10 +3447,18 @@ Replace the existing `.lws-dock` rule with:
     gap: var(--lws-space-3);
     padding: var(--lws-space-3);
   }
-  .lws-dock { max-width: 96px; }
-  .lws-dock-wrap { margin: 0; }
-  .lws-mascot-section .lws-bubble { flex: 1; }
-  .lws-mascot-section .lws-mascot-tail { display: none; }
+  .lws-dock {
+    max-width: 96px;
+  }
+  .lws-dock-wrap {
+    margin: 0;
+  }
+  .lws-mascot-section .lws-bubble {
+    flex: 1;
+  }
+  .lws-mascot-section .lws-mascot-tail {
+    display: none;
+  }
 }
 ```
 
@@ -3299,12 +3474,17 @@ In `src/index.css`, append:
     background-color var(--lws-dur-fast) var(--lws-ease),
     transform var(--lws-dur-fast) var(--lws-ease);
 }
-.lws-session-item:hover { background-color: #f8fafc; transform: translateX(2px); }
+.lws-session-item:hover {
+  background-color: #f8fafc;
+  transform: translateX(2px);
+}
 .lws-session-item[data-active='true'] {
   background-color: #fffbeb;
   box-shadow: inset 3px 0 0 var(--lws-amber);
 }
-.lws-message-in { animation: lwsRise var(--lws-dur-base) var(--lws-ease) forwards; }
+.lws-message-in {
+  animation: lwsRise var(--lws-dur-base) var(--lws-ease) forwards;
+}
 ```
 
 - [ ] **Step 6: Apply the session classes in `src/components/Sidebar.tsx`**
@@ -3337,9 +3517,11 @@ git commit -m "feat(dashboard): anchor the dock, restore Sasha on mobile, polish
 ### Task 15: Final verification pass
 
 **Files:**
+
 - Modify: any file needing a fix found during verification.
 
 **Interfaces:**
+
 - Consumes: the complete implementation.
 - Produces: a verified, committed branch.
 
@@ -3361,6 +3543,7 @@ Expected: ≤ 512,000 bytes. If larger, lower `SIMPLIFY_RATIO` in `scripts/build
 - [ ] **Step 4: Verify the entrance on a cold and warm load**
 
 Run `npm run preview`. In a fresh tab:
+
 - Cold: rocket launches, bursts, Sasha scales in, then waves.
 - Reload: rocket replays (new session only if the tab was closed); within the same tab the model fades in without the rocket.
 - Navigate landing → login → dashboard: no rocket replay, the model glides between anchors.
@@ -3405,26 +3588,26 @@ If no fixes were needed, skip this step and note that verification passed clean.
 
 **Spec coverage:**
 
-| Spec requirement | Task |
-| --- | --- |
-| Rocket entrance timeline (launch/burst/reveal/settle/done) | 6, 10 |
-| Load gating, never shortened | 6 |
-| Preload hint + self-hosted Draco decoder | 7 |
-| Once-per-session replay | 6, 10 |
-| Reduced motion in JS | 3, 4, 6, 10 |
-| WebGL / GLB / Draco failure paths | 9, 10 |
-| Missing-anchor fallback | 4 |
-| Layered pose composition | 4 |
-| Named camera shots + drift | 5 |
-| Anchor rects per screen | 8, 12, 13, 14 |
-| Design tokens | 11 |
-| Landing / login / dashboard redesign | 12, 13, 14 |
-| Mobile presence after login | 14 |
-| gltf-transform pipeline, ~60k triangles | 7 |
-| Quality tiers, background-tab pause | 3, 9, 10 |
-| Budgets (≤500 KB, load time, fps) | 7, 15 |
-| Vitest for poseDirector / anchors / entrance | 2, 4, 6 |
-| Manual verification matrix | 15 |
+| Spec requirement                                           | Task          |
+| ---------------------------------------------------------- | ------------- |
+| Rocket entrance timeline (launch/burst/reveal/settle/done) | 6, 10         |
+| Load gating, never shortened                               | 6             |
+| Preload hint + self-hosted Draco decoder                   | 7             |
+| Once-per-session replay                                    | 6, 10         |
+| Reduced motion in JS                                       | 3, 4, 6, 10   |
+| WebGL / GLB / Draco failure paths                          | 9, 10         |
+| Missing-anchor fallback                                    | 4             |
+| Layered pose composition                                   | 4             |
+| Named camera shots + drift                                 | 5             |
+| Anchor rects per screen                                    | 8, 12, 13, 14 |
+| Design tokens                                              | 11            |
+| Landing / login / dashboard redesign                       | 12, 13, 14    |
+| Mobile presence after login                                | 14            |
+| gltf-transform pipeline, ~60k triangles                    | 7             |
+| Quality tiers, background-tab pause                        | 3, 9, 10      |
+| Budgets (≤500 KB, load time, fps)                          | 7, 15         |
+| Vitest for poseDirector / anchors / entrance               | 2, 4, 6       |
+| Manual verification matrix                                 | 15            |
 
 No gaps.
 

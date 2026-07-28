@@ -17,7 +17,13 @@
  *     formatted lesson into the active chat as a model message (also persisted).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Role, type ChatHistoryEntry, type Message, type Preferences, type SessionSummary } from '../types';
+import {
+  Role,
+  type ChatHistoryEntry,
+  type Message,
+  type Preferences,
+  type SessionSummary,
+} from '../types';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useVoice } from '../context/VoiceContext';
@@ -110,8 +116,7 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
         const list = await refreshSessions();
         if (cancelled) return;
         const last = recallSession();
-        const target =
-          last && list.some((s) => s.id === last) ? last : list[0]?.id;
+        const target = last && list.some((s) => s.id === last) ? last : list[0]?.id;
         if (target) await selectSession(target);
       } catch {
         /* network — leave empty */
@@ -350,7 +355,7 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
             starters={SOLVER_HINTS}
             title={
               activeId
-                ? sessions.find((s) => s.id === activeId)?.title ?? 'New chat'
+                ? (sessions.find((s) => s.id === activeId)?.title ?? 'New chat')
                 : 'New chat'
             }
             placeholder={

@@ -83,7 +83,10 @@ export const TrashIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>
   </svg>
 );
 
-export const CalculatorIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+export const CalculatorIcon = ({
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement>) => (
   <svg {...base(className, props)}>
     <rect width="16" height="20" x="4" y="2" rx="2" />
     <line x1="8" x2="16" y1="6" y2="6" />
@@ -102,7 +105,10 @@ export const SpeakerIcon = ({ className, ...props }: React.SVGProps<SVGSVGElemen
 );
 
 /** Muted speaker icon (lucide volume-x style). */
-export const SpeakerMutedIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+export const SpeakerMutedIcon = ({
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement>) => (
   <svg {...base(className, props)}>
     <path d="M11 4.5 6 9H3v6h3l5 4.5z" />
     <line x1="22" x2="16" y1="9" y2="15" />
@@ -126,7 +132,10 @@ export const PauseIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>
 );
 
 /** Square stop. */
-export const StopSquareIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+export const StopSquareIcon = ({
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement>) => (
   <svg {...base(className, props)}>
     <rect x="6" y="6" width="12" height="12" rx="2" />
   </svg>

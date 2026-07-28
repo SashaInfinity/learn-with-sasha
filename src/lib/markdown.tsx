@@ -35,7 +35,9 @@ export function markdownToHtml(markdown: string): string {
     const fenceMatch = segment.match(/^```(\w*)\n?([\s\S]*?)```$/);
     if (fenceMatch) {
       const code = escape(fenceMatch[2].replace(/\n$/, ''));
-      htmlParts.push(`<pre class="bg-gray-800 rounded-md p-3 my-2 overflow-x-auto"><code>${code}</code></pre>`);
+      htmlParts.push(
+        `<pre class="bg-gray-800 rounded-md p-3 my-2 overflow-x-auto"><code>${code}</code></pre>`,
+      );
       continue;
     }
 
@@ -101,7 +103,10 @@ export function markdownToHtml(markdown: string): string {
 function inline(text: string): string {
   let out = text;
   // inline code first so its content isn't bolded/italicized
-  out = out.replace(/`([^`]+)`/g, '<code class="bg-gray-800 rounded px-1 py-0.5 text-sm">$1</code>');
+  out = out.replace(
+    /`([^`]+)`/g,
+    '<code class="bg-gray-800 rounded px-1 py-0.5 text-sm">$1</code>',
+  );
   out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   out = out.replace(/\*(.+?)\*/g, '<em>$1</em>');
   return out;

@@ -108,7 +108,10 @@ export default function VoiceControlPanel() {
               aria-label="Voice speed"
             />
           </label>
-          <label className="lws-voice-slider" title={`Volume: ${Math.round(volume * 100)}%`}>
+          <label
+            className="lws-voice-slider"
+            title={`Volume: ${Math.round(volume * 100)}%`}
+          >
             <span className="lws-voice-slider-label" aria-hidden>
               Vol
             </span>

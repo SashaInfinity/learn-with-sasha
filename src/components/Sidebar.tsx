@@ -71,12 +71,17 @@ export default function Sidebar({
                   className="lws-skeleton"
                   style={{ display: 'block', height: 10, width: '70%', marginBottom: 6 }}
                 />
-                <span className="lws-skeleton" style={{ display: 'block', height: 8, width: '40%' }} />
+                <span
+                  className="lws-skeleton"
+                  style={{ display: 'block', height: 8, width: '40%' }}
+                />
               </div>
             ))}
           </div>
         ) : sessions.length === 0 ? (
-          <p className="text-xs text-slate-400 px-3 py-8 text-center">No conversations yet.</p>
+          <p className="text-xs text-slate-400 px-3 py-8 text-center">
+            No conversations yet.
+          </p>
         ) : (
           sessions.map((s) => {
             const active = s.id === activeId;

@@ -62,7 +62,12 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
 
     const scene = new THREE.Scene();
     const isMobileDevice = window.innerWidth <= 768;
-    const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(
+      35,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      100,
+    );
     camera.position.set(0, isMobileDevice ? 0.5 : 1.0, 6);
 
     let renderer: THREE.WebGLRenderer;
@@ -220,13 +225,17 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
           );
           const fitY = (rect.height * DOCK_FILL_Y * wpp) / (localSize.y * baseScale || 1);
           const fitX = (rect.width * DOCK_FILL_X * wpp) / (localSize.x * baseScale || 1);
-          dockScale = baseScale * THREE.MathUtils.clamp(Math.min(fitY, fitX), MIN_DOCK_SCALE, MAX_DOCK_SCALE);
+          dockScale =
+            baseScale *
+            THREE.MathUtils.clamp(Math.min(fitY, fitX), MIN_DOCK_SCALE, MAX_DOCK_SCALE);
           haveDockPose = true;
         }
         if (haveDockPose) {
           const pulse = 1 + Math.sin(elapsed * 1.5) * 0.012;
           targetScaleNum = dockScale * pulse;
-          targetPos.copy(dockTarget).sub(localCenter.clone().multiplyScalar(targetScaleNum));
+          targetPos
+            .copy(dockTarget)
+            .sub(localCenter.clone().multiplyScalar(targetScaleNum));
           targetOpacity =
             rect && rect.bottom > -50 && rect.top < window.innerHeight + 50 ? 1 : 0;
         }
@@ -292,7 +301,10 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       // --- ease toward the target pose ----------------------------------
       const easeK = Math.min(delta * 5, 1);
       curPos.lerp(targetPos, easeK);
-      curScale.lerp(new THREE.Vector3(targetScaleNum, targetScaleNum, targetScaleNum), easeK);
+      curScale.lerp(
+        new THREE.Vector3(targetScaleNum, targetScaleNum, targetScaleNum),
+        easeK,
+      );
       curRotX += (targetRotX - curRotX) * easeK;
       curRotY += (targetRotY - curRotY) * easeK;
       curRotZ += (targetRotZ - curRotZ) * easeK;
@@ -324,7 +336,8 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
 
       // Ground disc: warm halo under Sasha, faded when hidden.
       groundMat.opacity =
-        (0.05 + Math.sin(elapsed * 1.5) * 0.02) * (currentMode === 'hidden' ? 0 : opacity);
+        (0.05 + Math.sin(elapsed * 1.5) * 0.02) *
+        (currentMode === 'hidden' ? 0 : opacity);
 
       if (currentMode === 'hidden' && opacity < 0.01) return;
 

@@ -52,10 +52,7 @@ export default tseslint.config(
       'react/prop-types': 'off', // TS handles this
       'react/jsx-key': 'warn',
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
 
       // TypeScript — relax a few that are noisy during migration
       '@typescript-eslint/no-explicit-any': 'warn',

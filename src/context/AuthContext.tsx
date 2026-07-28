@@ -5,7 +5,13 @@
  * page refresh keeps the student signed in. The JWT stays in the httpOnly
  * cookie and is never read by JS.
  */
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
 import type { CurrentUser } from '../types';
 import { api } from '../lib/api';
 

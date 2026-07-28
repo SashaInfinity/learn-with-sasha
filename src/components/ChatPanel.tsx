@@ -24,9 +24,18 @@ const ThinkingIndicator = () => (
   <div className="flex items-start gap-3 my-3">
     <SashaAvatar />
     <div className="bg-slate-50 border border-slate-200/70 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+      <span
+        className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"
+        style={{ animationDelay: '0ms' }}
+      />
+      <span
+        className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"
+        style={{ animationDelay: '150ms' }}
+      />
+      <span
+        className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"
+        style={{ animationDelay: '300ms' }}
+      />
     </div>
   </div>
 );

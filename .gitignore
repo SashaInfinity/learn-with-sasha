@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Piper TTS voice models — large ONNX files fetched at runtime.
+# The Piper container (server/piper/docker-compose.yml) auto-downloads
+# voices from HuggingFace on first use and caches them here. Never commit.
+server/piper/data/
+*.onnx
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

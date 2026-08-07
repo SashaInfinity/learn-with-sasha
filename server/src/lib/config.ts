@@ -22,7 +22,11 @@ export const config = {
 
   databaseUrl: required('DATABASE_URL'),
 
-  authBackendUrl: required('AUTH_BACKEND_URL'), // e.g. http://127.0.0.1:8000/api/v1
+  // The LMS auth API. Defaults to the remote LMS so login works out of the box
+  // without running the local FastAPI/Postgres stack. Override AUTH_BACKEND_URL
+  // to point at a local LMS (e.g. http://127.0.0.1:8000/api/v1) for development.
+  authBackendUrl:
+    process.env.AUTH_BACKEND_URL ?? 'https://backend.sashainfinity.com/api/v1',
   authCookieName: process.env.AUTH_COOKIE_NAME ?? 'learn_sasha_token',
   cookieDomain: process.env.COOKIE_DOMAIN ?? 'localhost',
 

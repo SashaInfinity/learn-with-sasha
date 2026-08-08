@@ -15,7 +15,14 @@ export type SashaMoodName =
 /** Render quality bucket chosen from device hints. */
 export type QualityTier = 'high' | 'low';
 
-/** Phases of the rocket entrance, in order. */
+/**
+ * Phases of the entrance, in order. The Sasha GLB lands like a rocket:
+ *   launch  — descends from above with a thruster glow
+ *   burst   — touches down (dust burst); the load gate holds here
+ *   reveal  — settles onto the ground
+ *   settle  — eases into the idle pose
+ *   done    — overlay handoff complete
+ */
 export type EntrancePhase = 'launch' | 'burst' | 'reveal' | 'settle' | 'done';
 
 /** Named camera framings the camera director eases between. */
@@ -115,9 +122,9 @@ export interface EntranceState {
   phase: EntrancePhase;
   /** Timeline seconds, already adjusted for any load-gate hold. */
   t: number;
-  /** Rocket travel 0..1 across the launch phase. */
+  /** Travel 0..1 across the launch phase (kept for compatibility/tests). */
   rocketProgress: number;
-  /** Radial flare intensity 0..1 during burst/reveal. */
+  /** Radial flare intensity 0..1 during burst/reveal (the touchdown burst). */
   flare: number;
   /** Model scale multiplier for the reveal ramp. */
   modelScale: number;
@@ -125,6 +132,14 @@ export interface EntranceState {
   modelOpacity: number;
   /** True once the overlay can unmount. */
   complete: boolean;
+  /** Vertical world offset of the model during descent; 0 = landed. */
+  descentY: number;
+  /** Nose-down pitch (radians) while descending; 0 = upright. */
+  tilt: number;
+  /** Touch-down dust burst intensity 0..1 (peaks at burst, then fades). */
+  dust: number;
+  /** Under-model thruster glow intensity 0..1 while descending. */
+  engineGlow: number;
 }
 
 /** Inputs to the entrance phase machine. */

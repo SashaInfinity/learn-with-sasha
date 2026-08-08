@@ -27,7 +27,6 @@ import { entranceState, hasSeenEntrance, markEntranceSeen } from '../stage/entra
 import type { AnchorFit, EntranceState, ModelMetrics, StageMode } from '../stage/types';
 import { getVoiceAmplitude } from '../context/VoiceContext';
 import type { SashaMood } from '../context/VoiceContext';
-import RocketLaunch from './RocketLaunch';
 import SashaFallback from './SashaFallback';
 
 export type { StageMode };
@@ -58,9 +57,10 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
     moodRef.current = mood;
   }, [mood]);
 
-  // Entrance state is mirrored into React only for the overlay, at a coarse
-  // cadence — the loop itself reads the pure function every frame.
-  const [entrance, setEntrance] = useState<EntranceState>(() =>
+  // Entrance state is recomputed every frame inside the loop. The setter is
+  // retained so the once-per-session replay flag stays consistent, but no
+  // overlay consumes the published value now that the model lands in-scene.
+  const [, setEntrance] = useState<EntranceState>(() =>
     entranceState({
       elapsed: 0,
       loadProgress: 0,
@@ -69,7 +69,6 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       skip: hasSeenEntrance(),
     }),
   );
-  const [loadProgress, setLoadProgress] = useState(0);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -101,7 +100,6 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
     void loadSashaModel({
       onProgress: (p) => {
         progress = p;
-        setLoadProgress(p);
       },
     })
       .then((loaded) => {
@@ -223,14 +221,24 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
 
       if (model) {
         model.position.copy(curPos);
+        // The GLB descends from above as part of the landing entrance; offset
+        // the eased position by the timeline's descent height.
+        model.position.y += ent.descentY;
         model.scale.copy(curScale);
-        model.rotation.set(curRotX, curRotY, curRotZ);
+        // Apply the landing tilt as an additive nose-down pitch.
+        model.rotation.set(curRotX + ent.tilt, curRotY, curRotZ);
         setModelOpacity(model, curOpacity);
       }
 
       stage.setGroundOpacity(
         (reducedMotion ? 0.05 : 0.05 + Math.sin(elapsed * 1.5) * 0.02) * curOpacity,
       );
+
+      // --- landing effects ------------------------------------------------
+      // Glow/dust sit at the model's feet, which move with the eased pose.
+      const feetY = model ? curPos.y - 1.5 : -1.5;
+      stage.setEngineGlow(ent.engineGlow, feetY + ent.descentY);
+      stage.setDust(ent.dust, feetY);
 
       // --- camera ---------------------------------------------------------
       const shot = withDrift(
@@ -296,7 +304,6 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
           pointerEvents: 'none',
         }}
       />
-      <RocketLaunch state={entrance} loadProgress={loadProgress} />
       <SashaFallback visible={failed} />
     </>
   );

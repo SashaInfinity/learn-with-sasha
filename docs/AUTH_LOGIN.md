@@ -63,9 +63,9 @@ NODE_ENV=development
 CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:3000
 DATABASE_URL=postgresql://tutor:SashaInfinite2024@127.0.0.1:5432/tutor_lms
 
-# Point at the REMOTE LMS so login works without running FastAPI locally:
-AUTH_BACKEND_URL=https://backend.sashainfinity.com/api/v1
-# ...or, to develop against a locally-running LMS:
+# The LMS API, reached through the sasha-edge proxy (see below):
+AUTH_BACKEND_URL=http://127.0.0.1:3200/api/v1
+# ...or, to develop against a FastAPI you run directly with uvicorn:
 # AUTH_BACKEND_URL=http://127.0.0.1:8000/api/v1
 
 AUTH_COOKIE_NAME=learn_sasha_token
@@ -74,14 +74,34 @@ AUTH_COOKIE_NAME=learn_sasha_token
 
 ## Choosing the auth backend
 
-`AUTH_BACKEND_URL` is optional. If unset, it defaults to the remote LMS
-(`https://backend.sashainfinity.com/api/v1`), so login works out of the box.
+`AUTH_BACKEND_URL` is optional. If unset it defaults to `http://127.0.0.1:3200/api/v1`.
 
-| Use case                        | `AUTH_BACKEND_URL`                              |
-| ------------------------------- | ----------------------------------------------- |
-| Local dev, no local LMS running | `https://backend.sashainfinity.com/api/v1`      |
-| Local dev with LMS running      | `http://127.0.0.1:8000/api/v1`                  |
-| Production                      | `http://127.0.0.1:8000/api/v1` (same host)      |
+The LMS FastAPI runs on this host as the `sasha-backend-blue` container, which
+publishes **no host port** — `docker ps` shows a bare `8000/tcp`, reachable only
+from inside the docker network. The only way in from the host is the
+`sasha-edge` nginx proxy on `127.0.0.1:3200`, which forwards `/api/v1/*` to it.
+
+**`http://127.0.0.1:8000/api/v1` does not work on this host** and produces a
+`500` on every login attempt. Likewise `https://backend.sashainfinity.com` is a
+different application entirely (the Shailog Next.js app) and 404s on all auth
+routes — do not point at it.
+
+| Use case                           | `AUTH_BACKEND_URL`             |
+| ---------------------------------- | ------------------------------ |
+| Production (this host)             | `http://127.0.0.1:3200/api/v1` |
+| Local dev against the deployed LMS | `http://127.0.0.1:3200/api/v1` |
+| Local dev, FastAPI run directly    | `http://127.0.0.1:8000/api/v1` |
+
+Sanity-check whichever you pick before debugging anything else — a working LMS
+answers `POST /auth/login` with a `401` and a JSON `detail`, not a `404` or a
+connection error:
+
+```bash
+curl -s -X POST http://127.0.0.1:3200/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"nobody@example.com","password":"wrong"}'
+# {"detail":"No account found with this email address"}
+```
 
 ## Production reverse proxy
 
@@ -112,6 +132,7 @@ is sent on every subdomain request.
   password, unverified email, instructor not approved, or 2FA `otp_required`).
   This project does not implement 2FA/registration UI; complete those flows on the
   LMS site.
-- **LMS backend unreachable** — if `AUTH_BACKEND_URL` points at a local FastAPI
-  that isn't running, login fails with a `500`/network error. Point at the remote
-  LMS instead.
+- **LMS backend unreachable** — if `AUTH_BACKEND_URL` points somewhere nothing is
+  listening, login fails with a `500`/network error. Almost always this is
+  `127.0.0.1:8000`, which nothing binds on this host. Use the edge proxy
+  (`http://127.0.0.1:3200/api/v1`) and confirm with the `curl` above.

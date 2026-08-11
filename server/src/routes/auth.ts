@@ -33,9 +33,22 @@ authRouter.post('/login', async (req, res) => {
     return;
   }
 
+  // Validate to get the canonical user shape (and confirm the token works)
+  // BEFORE handing out a cookie — otherwise a token the LMS won't accept still
+  // leaves the browser holding a session cookie and a `{ user: null }` body it
+  // reads as a successful login.
+  let me: CurrentUser | null;
+  try {
+    me = await fetchMe(tokenResp.access_token);
+  } catch {
+    me = null;
+  }
+  if (!me) {
+    res.status(502).json({ error: 'Auth backend accepted the login but rejected the token' });
+    return;
+  }
+
   res.cookie(config.authCookieName, tokenResp.access_token, cookieOptions());
-  // Validate to get the canonical user shape (and confirm the token works).
-  const me = await fetchMe(tokenResp.access_token);
   res.json({ user: me });
 });
 

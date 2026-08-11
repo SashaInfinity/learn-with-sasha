@@ -9,12 +9,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useVoice } from '../context/VoiceContext';
 import { useSashaAnchor } from '../hooks/useSashaAnchor';
+import { EyeIcon, EyeOffIcon } from './IconComponents';
 
 export default function AuthScreen() {
   const { login, error, clearError, loading } = useAuth();
   const { setMood, speak, muted } = useVoice();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const anchorRef = useRef<HTMLDivElement | null>(null);
   useSashaAnchor(anchorRef, 'auth', { fillY: 0.92, max: 1.6 });
@@ -71,10 +73,11 @@ export default function AuthScreen() {
             <p className="text-sm text-slate-500 mt-1">Use your Sasha account</p>
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="lws-auth-form" noValidate>
             <div className="lws-field">
               <input
                 id="login-email"
+                name="email"
                 type="email"
                 autoComplete="email"
                 required
@@ -86,13 +89,14 @@ export default function AuthScreen() {
                   if (error) clearError();
                 }}
               />
-              <label htmlFor="login-email">Email</label>
+              <label htmlFor="login-email">Email address</label>
             </div>
 
-            <div className="lws-field">
+            <div className="lws-field lws-field-password">
               <input
                 id="login-password"
-                type="password"
+                name="password"
+                type={showPwd ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
                 placeholder=" "
@@ -103,6 +107,31 @@ export default function AuthScreen() {
                 }}
               />
               <label htmlFor="login-password">Password</label>
+              <button
+                type="button"
+                className="lws-field-toggle"
+                onClick={() => setShowPwd((s) => !s)}
+                aria-label={showPwd ? 'Hide password' : 'Show password'}
+                aria-pressed={showPwd}
+                aria-controls="login-password"
+                tabIndex={0}
+              >
+                {showPwd ? (
+                  <EyeOffIcon width={18} height={18} />
+                ) : (
+                  <EyeIcon width={18} height={18} />
+                )}
+              </button>
+            </div>
+
+            <div className="lws-auth-forgot">
+              <a
+                href="https://sashainfinity.com/forgot-password"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Forgot password?
+              </a>
             </div>
 
             {error && (
@@ -127,7 +156,7 @@ export default function AuthScreen() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-slate-500">
+          <p className="lws-auth-footer">
             Don&apos;t have an account?{' '}
             <a
               href="https://sashainfinity.com"

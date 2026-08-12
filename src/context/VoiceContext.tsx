@@ -22,13 +22,7 @@ import {
 import { voice } from '../lib/voice';
 
 export type SashaMood =
-  | 'idle'
-  | 'wave'
-  | 'thinking'
-  | 'talking'
-  | 'celebrate'
-  | 'shake'
-  | 'attentive';
+  'idle' | 'wave' | 'thinking' | 'talking' | 'celebrate' | 'shake' | 'attentive';
 
 interface VoiceContextValue {
   isSpeaking: boolean;

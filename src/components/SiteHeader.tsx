@@ -2,21 +2,18 @@
  * SiteHeader — the marketing navigation shown above the landing and auth
  * screens. Logo + wordmark + "AI Tutor" chip on the left; section links
  * (How It Works · Topics · About) in the middle that anchor-scroll to the
- * landing's content sections; secondary "Log In" + primary gradient
- * "Get Started →" on the right.
+ * landing's content sections.
  *
  * Distinct from the dashboard's authenticated `.lws-header` — this one uses
  * its own `.lws-site-header` class so the two never collide. On mobile the
- * section links collapse out (they live in the landing body too) and only the
- * logo + Get Started remain.
+ * section links collapse behind a menu button. The primary "Get Started"
+ * CTAs live in the hero/about body, not in this bar.
  */
 import { useState } from 'react';
 import { SparklesIcon, MenuIcon, XIcon } from './IconComponents';
 
 interface SiteHeaderProps {
   variant: 'landing' | 'auth';
-  onGetStarted: () => void;
-  onLogin?: () => void;
 }
 
 const NAV_LINKS: { label: string; href: string }[] = [
@@ -25,12 +22,8 @@ const NAV_LINKS: { label: string; href: string }[] = [
   { label: 'About', href: '#about' },
 ];
 
-export default function SiteHeader({ variant, onGetStarted, onLogin }: SiteHeaderProps) {
+export default function SiteHeader({ variant }: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const handleLogin = () => {
-    if (onLogin) onLogin();
-  };
 
   return (
     <header className="lws-site-header">
@@ -59,36 +52,18 @@ export default function SiteHeader({ variant, onGetStarted, onLogin }: SiteHeade
           </nav>
         )}
 
-        {/* Right cluster */}
-        <div className="lws-site-actions">
-          <button type="button" onClick={handleLogin} className="lws-site-login">
-            Log In
-          </button>
+        {/* Mobile menu toggle (landing only — reveals section links). */}
+        {variant === 'landing' && (
           <button
             type="button"
-            onClick={onGetStarted}
-            className="lws-cta lws-lift lws-site-cta"
+            className="lws-site-menubtn"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
           >
-            Get Started <span aria-hidden>→</span>
+            {menuOpen ? <XIcon width={22} height={22} /> : <MenuIcon width={22} height={22} />}
           </button>
-
-          {/* Mobile menu toggle (landing only — reveals section links). */}
-          {variant === 'landing' && (
-            <button
-              type="button"
-              className="lws-site-menubtn"
-              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((o) => !o)}
-            >
-              {menuOpen ? (
-                <XIcon width={22} height={22} />
-              ) : (
-                <MenuIcon width={22} height={22} />
-              )}
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Mobile dropdown of section links. */}

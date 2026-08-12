@@ -65,11 +65,7 @@ export default function AppShell() {
     return (
       <div className="lws-marketing-shell">
         {stage}
-        <SiteHeader
-          variant="landing"
-          onGetStarted={() => setShowLanding(false)}
-          onLogin={() => setShowLanding(false)}
-        />
+        <SiteHeader variant="landing" />
         <LandingPage onGetStarted={() => setShowLanding(false)} />
       </div>
     );
@@ -79,7 +75,7 @@ export default function AppShell() {
     return (
       <div className="lws-marketing-shell">
         {stage}
-        <SiteHeader variant="auth" onGetStarted={() => setShowLanding(false)} />
+        <SiteHeader variant="auth" />
         <AuthScreen />
       </div>
     );

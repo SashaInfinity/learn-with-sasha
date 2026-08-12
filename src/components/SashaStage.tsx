@@ -5,16 +5,8 @@
  * between frames. All decisions (where she sits, how she moves, which camera
  * shot, when the entrance advances) come from the pure modules in src/stage/.
  *
- * Mounted once in AppShell and never unmounts, so navigating between
- * Landing / Auth / Chat glides the same model between anchors. Screens declare
- * where Sasha belongs by rendering an element and registering it via
- * useSashaAnchor; the loop reads the active anchor's rect every frame, so
- * layout — not hardcoded NDC constants — drives the 3D placement.
- *
- * Modes:
- *   'hero'   — placed inside the active anchor (landing/auth).
- *   'lesson' — placed inside the chat dock anchor.
- *   'hidden' — faded out; the render loop idles.
+ * Mounted once in AppShell and never unmounted, so navigating between
+ * Landing / Auth / Chat glides the same model between anchors.
  */
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -35,7 +27,6 @@ import { entranceState, hasSeenEntrance, markEntranceSeen } from '../stage/entra
 import type { AnchorFit, EntranceState, ModelMetrics, StageMode } from '../stage/types';
 import { getVoiceAmplitude } from '../context/VoiceContext';
 import type { SashaMood } from '../context/VoiceContext';
-import RocketLaunch from './RocketLaunch';
 import SashaFallback from './SashaFallback';
 
 export type { StageMode };
@@ -66,9 +57,10 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
     moodRef.current = mood;
   }, [mood]);
 
-  // Entrance state is mirrored into React only for the overlay, at a coarse
-  // cadence — the loop itself reads the pure function every frame.
-  const [entrance, setEntrance] = useState<EntranceState>(() =>
+  // Entrance state is recomputed every frame inside the loop. The setter is
+  // retained so the once-per-session replay flag stays consistent, but no
+  // overlay consumes the published value now that the model lands in-scene.
+  const [, setEntrance] = useState<EntranceState>(() =>
     entranceState({
       elapsed: 0,
       loadProgress: 0,
@@ -77,7 +69,6 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       skip: hasSeenEntrance(),
     }),
   );
-  const [loadProgress, setLoadProgress] = useState(0);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -91,8 +82,8 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       setFailed(true);
       return;
     }
-    // Re-bind to a fresh const so TypeScript carries the non-null type into the
-    // nested frame() closure (the guard above narrows `created`, not `stage`).
+    // Re-bound after the guard: `frame` is a hoisted function declaration, so
+    // TypeScript will not carry the narrowing of `created` into it.
     const stage = created;
 
     let model: THREE.Object3D | null = null;
@@ -109,7 +100,6 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
     void loadSashaModel({
       onProgress: (p) => {
         progress = p;
-        setLoadProgress(p);
       },
     })
       .then((loaded) => {
@@ -119,7 +109,7 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
         setModelOpacity(model, 0);
         stage.scene.add(model);
       })
-      .catch((err: unknown) => {
+      .catch((err) => {
         console.warn('SashaStage: model failed to load', err);
         if (!disposed) setFailed(true);
       });
@@ -231,17 +221,24 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
 
       if (model) {
         model.position.copy(curPos);
+        // The GLB descends from above as part of the landing entrance; offset
+        // the eased position by the timeline's descent height.
+        model.position.y += ent.descentY;
         model.scale.copy(curScale);
-        model.rotation.set(curRotX, curRotY, curRotZ);
+        // Apply the landing tilt as an additive nose-down pitch.
+        model.rotation.set(curRotX + ent.tilt, curRotY, curRotZ);
         setModelOpacity(model, curOpacity);
       }
 
-      // Ground halo: a warm, anchored shadow beneath Sasha. The base opacity is
-      // higher than the old 0.05 so the stacked-disc figure reads as one body
-      // sitting on a surface rather than floating. Fades with the model.
       stage.setGroundOpacity(
-        (reducedMotion ? 0.11 : 0.11 + Math.sin(elapsed * 1.5) * 0.025) * curOpacity,
+        (reducedMotion ? 0.05 : 0.05 + Math.sin(elapsed * 1.5) * 0.02) * curOpacity,
       );
+
+      // --- landing effects ------------------------------------------------
+      // Glow/dust sit at the model's feet, which move with the eased pose.
+      const feetY = model ? curPos.y - 1.5 : -1.5;
+      stage.setEngineGlow(ent.engineGlow, feetY + ent.descentY);
+      stage.setDust(ent.dust, feetY);
 
       // --- camera ---------------------------------------------------------
       const shot = withDrift(
@@ -307,7 +304,6 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
           pointerEvents: 'none',
         }}
       />
-      <RocketLaunch state={entrance} loadProgress={loadProgress} />
       <SashaFallback visible={failed} />
     </>
   );

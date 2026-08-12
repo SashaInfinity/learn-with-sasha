@@ -1037,6 +1037,74 @@ body {
   }
 }
 
+/* Password field: room for the show/hide button on the right. */
+.lws-field-password input {
+  padding-right: 44px;
+}
+.lws-field-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--lws-radius-sm);
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition:
+    color var(--lws-dur-fast) var(--lws-ease),
+    background var(--lws-dur-fast) var(--lws-ease);
+}
+.lws-field-toggle:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+.lws-field-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+  color: var(--lws-amber-dark);
+}
+
+/* Login form stack: uniform vertical rhythm between fields/rows. */
+.lws-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lws-space-4);
+}
+/* Forgot-password row sits flush under the password field. */
+.lws-auth-forgot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: calc(var(--lws-space-1) * -1);
+}
+.lws-auth-forgot a {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lws-amber-dark);
+  text-decoration: none;
+  transition: color var(--lws-dur-fast) var(--lws-ease);
+}
+.lws-auth-forgot a:hover {
+  color: var(--lws-amber);
+  text-decoration: underline;
+}
+/* Registration footer below the card's form. */
+.lws-auth-footer {
+  margin-top: var(--lws-space-5);
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+}
+.lws-auth-footer a {
+  transition: color var(--lws-dur-fast) var(--lws-ease);
+}
+
 /* --- dashboard polish ---------------------------------------------------- */
 .lws-session-item {
   border-radius: var(--lws-radius-md);

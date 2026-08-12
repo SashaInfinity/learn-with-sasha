@@ -22,7 +22,11 @@ export const config = {
 
   databaseUrl: required('DATABASE_URL'),
 
-  authBackendUrl: required('AUTH_BACKEND_URL'), // e.g. http://127.0.0.1:8000/api/v1
+  // The LMS auth API. Defaults to the sasha-edge proxy, which is how the LMS
+  // FastAPI is actually reachable from this host — the container publishes no
+  // host port of its own, so http://127.0.0.1:8000 does NOT work. Override
+  // AUTH_BACKEND_URL to point elsewhere (e.g. a directly-run local FastAPI).
+  authBackendUrl: process.env.AUTH_BACKEND_URL ?? 'http://127.0.0.1:3200/api/v1',
   authCookieName: process.env.AUTH_COOKIE_NAME ?? 'learn_sasha_token',
   cookieDomain: process.env.COOKIE_DOMAIN ?? 'localhost',
 

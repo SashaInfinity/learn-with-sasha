@@ -4,6 +4,7 @@ import {
   hasSeenEntrance,
   markEntranceSeen,
   ENTRANCE_SEEN_KEY,
+  LAUNCH_END,
   BURST_END,
   SETTLE_END,
 } from '../entrance';
@@ -80,11 +81,8 @@ describe('entranceState — load gating', () => {
 });
 
 describe('entranceState — reveal ramp', () => {
-  it('keeps the model invisible through launch and burst', () => {
-    expect(entranceState(input({ elapsed: 0.4 })).modelOpacity).toBe(0);
-    expect(entranceState(input({ elapsed: 1.0, gateReleasedAt: 0 })).modelOpacity).toBe(
-      0,
-    );
+  it('keeps the model invisible at the very start of launch', () => {
+    expect(entranceState(input({ elapsed: 0 })).modelOpacity).toBe(0);
   });
 
   it('ramps opacity to full by the end of reveal', () => {
@@ -107,6 +105,46 @@ describe('entranceState — reveal ramp', () => {
       0,
       1,
     );
+  });
+});
+
+describe('entranceState — landing transforms', () => {
+  it('starts high and descends to the ground across launch', () => {
+    const start = entranceState(input({ elapsed: 0 }));
+    const end = entranceState(input({ elapsed: LAUNCH_END }));
+    expect(start.descentY).toBeGreaterThan(5);
+    expect(end.descentY).toBeCloseTo(0, 5);
+  });
+
+  it('holds a nose-down tilt during descent that settles to upright', () => {
+    const start = entranceState(input({ elapsed: 0 })).tilt;
+    const end = entranceState(input({ elapsed: LAUNCH_END })).tilt;
+    expect(start).toBeGreaterThan(0.05);
+    expect(end).toBeCloseTo(0, 5);
+  });
+
+  it('fires the thruster glow during descent and cuts it after touch-down', () => {
+    const mid = entranceState(input({ elapsed: 0.4 })).engineGlow;
+    const landed = entranceState(input({ elapsed: 1.2, gateReleasedAt: 0 })).engineGlow;
+    expect(mid).toBeGreaterThan(0.3);
+    expect(landed).toBeCloseTo(0, 5);
+  });
+
+  it('produces a touch-down dust burst that peaks then fades', () => {
+    const pre = entranceState(input({ elapsed: 0.5 })).dust;
+    const peak = entranceState(input({ elapsed: BURST_END, gateReleasedAt: 0 })).dust;
+    const after = entranceState(input({ elapsed: 1.9, gateReleasedAt: 0 })).dust;
+    expect(pre).toBe(0);
+    expect(peak).toBeGreaterThan(0.9);
+    expect(after).toBeCloseTo(0, 1);
+  });
+
+  it('sits on the ground with full dust while gated at touch-down', () => {
+    const s = entranceState(input({ elapsed: 5, gateReleasedAt: null }));
+    expect(s.descentY).toBe(0);
+    expect(s.tilt).toBe(0);
+    expect(s.dust).toBe(1);
+    expect(s.engineGlow).toBe(0);
   });
 });
 

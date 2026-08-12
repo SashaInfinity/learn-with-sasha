@@ -14,6 +14,7 @@ import LandingPage from './LandingPage';
 import AuthScreen from './AuthScreen';
 import ChatHome from './ChatHome';
 import SashaStage, { type StageMode } from './SashaStage';
+import SiteHeader from './SiteHeader';
 import Spinner from './Spinner';
 import { PlusIcon } from './IconComponents';
 
@@ -62,8 +63,13 @@ export default function AppShell() {
 
   if (showLanding) {
     return (
-      <div>
+      <div className="lws-marketing-shell">
         {stage}
+        <SiteHeader
+          variant="landing"
+          onGetStarted={() => setShowLanding(false)}
+          onLogin={() => setShowLanding(false)}
+        />
         <LandingPage onGetStarted={() => setShowLanding(false)} />
       </div>
     );
@@ -71,8 +77,9 @@ export default function AppShell() {
 
   if (!user) {
     return (
-      <div>
+      <div className="lws-marketing-shell">
         {stage}
+        <SiteHeader variant="auth" onGetStarted={() => setShowLanding(false)} />
         <AuthScreen />
       </div>
     );

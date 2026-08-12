@@ -74,9 +74,13 @@ export function createStage(canvas: HTMLCanvasElement, tier: QualityTier): Stage
       transparent: true,
       opacity: 0.05,
     });
-    const geometry = new THREE.CircleGeometry(2.5, 48);
+    // An elliptical halo (wider than tall) reads as a grounded shadow beneath
+    // the figure, so the stacked-disc character feels anchored rather than
+    // floating. Squashing on X/Z gives the ellipse its perspective shape.
+    const geometry = new THREE.CircleGeometry(2.6, 48);
     const ground = new THREE.Mesh(geometry, groundMat);
     ground.rotation.x = -Math.PI / 2;
+    ground.scale.set(1.15, 1, 0.62);
     ground.position.y = -1.5;
     scene.add(ground);
     disposables.push(geometry, groundMat);

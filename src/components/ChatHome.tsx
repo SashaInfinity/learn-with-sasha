@@ -17,11 +17,19 @@
  *     formatted lesson into the active chat as a model message (also persisted).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Role, type ChatHistoryEntry, type Message, type Preferences, type SessionSummary } from '../types';
+import {
+  Role,
+  type ChatHistoryEntry,
+  type Message,
+  type Preferences,
+  type SessionSummary,
+} from '../types';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useVoice } from '../context/VoiceContext';
 import { useToast } from '../context/ToastContext';
+import { useSashaAnchor } from '../hooks/useSashaAnchor';
+import { SASHA_DOCK_ID } from './learnWithSasha/constants';
 
 /** localStorage key for the most recently opened session (continuity on reload). */
 const LAST_SESSION_KEY = 'lws:lastSessionId';
@@ -85,6 +93,10 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
   useEffect(() => {
     activeIdRef.current = activeId;
   }, [activeId]);
+  // Sasha's dock. Registered as the stage anchor so the 3D character is placed
+  // by layout — on desktop the mascot card, on mobile the compact strip.
+  const dockRef = useRef<HTMLDivElement | null>(null);
+  useSashaAnchor(dockRef, 'dock', { fillY: 0.94, max: 1.4 });
 
   const refreshSessions = useCallback(async () => {
     const { sessions: list } = await api.listSessions();
@@ -110,8 +122,7 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
         const list = await refreshSessions();
         if (cancelled) return;
         const last = recallSession();
-        const target =
-          last && list.some((s) => s.id === last) ? last : list[0]?.id;
+        const target = last && list.some((s) => s.id === last) ? last : list[0]?.id;
         if (target) await selectSession(target);
       } catch {
         /* network — leave empty */
@@ -272,7 +283,7 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
       style={{ padding: 'calc(var(--lws-header-h) + 24px) 16px 24px' }}
     >
       {/* ============ LEFT: Mascot / Tutor Status Card (lg: 4 cols) ======== */}
-      <section className="lg:col-span-4 flex flex-col gap-4 lws-hide-below-lg">
+      <section className="lg:col-span-4 flex flex-col gap-4 lws-mascot-section">
         <div className="lws-mascot-card bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col items-center relative">
           <div className="lws-mascot-glow" />
 
@@ -292,8 +303,8 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
           </div>
 
           {/* The 3D character projects into #sasha-dock here. */}
-          <div className="my-8 flex flex-col items-center">
-            <div id="sasha-dock" className="lws-dock" />
+          <div className="lws-dock-wrap flex flex-col items-center">
+            <div ref={dockRef} id={SASHA_DOCK_ID} className="lws-dock" />
             <span className="mt-4 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Sasha is active
@@ -350,7 +361,7 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
             starters={SOLVER_HINTS}
             title={
               activeId
-                ? sessions.find((s) => s.id === activeId)?.title ?? 'New chat'
+                ? (sessions.find((s) => s.id === activeId)?.title ?? 'New chat')
                 : 'New chat'
             }
             placeholder={

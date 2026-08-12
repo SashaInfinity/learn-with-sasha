@@ -5,8 +5,16 @@
  * between frames. All decisions (where she sits, how she moves, which camera
  * shot, when the entrance advances) come from the pure modules in src/stage/.
  *
- * Mounted once in AppShell and never unmounted, so navigating between
- * Landing / Auth / Chat glides the same model between anchors.
+ * Mounted once in AppShell and never unmounts, so navigating between
+ * Landing / Auth / Chat glides the same model between anchors. Screens declare
+ * where Sasha belongs by rendering an element and registering it via
+ * useSashaAnchor; the loop reads the active anchor's rect every frame, so
+ * layout — not hardcoded NDC constants — drives the 3D placement.
+ *
+ * Modes:
+ *   'hero'   — placed inside the active anchor (landing/auth).
+ *   'lesson' — placed inside the chat dock anchor.
+ *   'hidden' — faded out; the render loop idles.
  */
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -83,8 +91,8 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
       setFailed(true);
       return;
     }
-    // Re-bound after the guard: `frame` is a hoisted function declaration, so
-    // TypeScript will not carry the narrowing of `created` into it.
+    // Re-bind to a fresh const so TypeScript carries the non-null type into the
+    // nested frame() closure (the guard above narrows `created`, not `stage`).
     const stage = created;
 
     let model: THREE.Object3D | null = null;
@@ -111,7 +119,7 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
         setModelOpacity(model, 0);
         stage.scene.add(model);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.warn('SashaStage: model failed to load', err);
         if (!disposed) setFailed(true);
       });
@@ -228,8 +236,11 @@ export default function SashaStage({ mode, mood = 'idle' }: SashaStageProps) {
         setModelOpacity(model, curOpacity);
       }
 
+      // Ground halo: a warm, anchored shadow beneath Sasha. The base opacity is
+      // higher than the old 0.05 so the stacked-disc figure reads as one body
+      // sitting on a surface rather than floating. Fades with the model.
       stage.setGroundOpacity(
-        (reducedMotion ? 0.05 : 0.05 + Math.sin(elapsed * 1.5) * 0.02) * curOpacity,
+        (reducedMotion ? 0.11 : 0.11 + Math.sin(elapsed * 1.5) * 0.025) * curOpacity,
       );
 
       // --- camera ---------------------------------------------------------

@@ -1,14 +1,10 @@
 /**
  * Auth screen: email + password login against the shared sasha_lms account.
- *
- * The left column is registered as Sasha's anchor, so she sits inside the space
- * reserved for her instead of floating over the form (the previous behaviour:
- * the stage anchored at screen centre while this file reserved a left column).
+ * Sasha (hero mode) floats beside the form on desktop and behind it on mobile.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useVoice } from '../context/VoiceContext';
-import { useSashaAnchor } from '../hooks/useSashaAnchor';
 
 export default function AuthScreen() {
   const { login, error, clearError, loading } = useAuth();
@@ -16,18 +12,16 @@ export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const anchorRef = useRef<HTMLDivElement | null>(null);
-  useSashaAnchor(anchorRef, 'auth', { fillY: 0.92, max: 1.6 });
 
   useEffect(() => {
-    setMood('idle');
+    setMood('thinking');
     return () => setMood('idle');
   }, [setMood]);
 
   useEffect(() => {
     if (error) {
       setMood('shake');
-      const t = setTimeout(() => setMood('idle'), 700);
+      const t = setTimeout(() => setMood('idle'), 600);
       return () => clearTimeout(t);
     }
   }, [error, setMood]);
@@ -35,7 +29,6 @@ export default function AuthScreen() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    setMood('thinking');
     try {
       await login(email.trim(), password);
       if (!muted) speak('Welcome back!');
@@ -43,26 +36,27 @@ export default function AuthScreen() {
       /* error surfaced via context */
     } finally {
       setSubmitting(false);
-      setMood('idle');
     }
   };
 
   const busy = submitting || loading;
 
   return (
-    <div className="lws-auth">
-      <div className="lws-auth-grid">
-        {/* Sasha's column: greeting bubble above her anchor box. */}
-        <div className="lws-auth-aside">
-          <div className="lws-bubble lws-auth-bubble">
-            <span className="text-sm font-semibold text-slate-800">
-              Sign in and let&apos;s begin.
-            </span>
+    <div className="min-h-screen flex items-center justify-center px-4 py-16">
+      <div className="grid w-full max-w-5xl grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_420px]">
+        {/* Sasha floats here (hero mode) — reserve space on desktop. */}
+        <div
+          className="hidden lg:flex lg:flex-col lg:items-center"
+          aria-hidden
+          style={{ minHeight: 'clamp(360px, 60vh, 600px)' }}
+        >
+          <div className="bg-amber-50 border border-amber-200/60 rounded-2xl px-4 py-3 shadow-sm text-center mb-3">
+            <span className="text-sm font-semibold text-slate-800">Sign in and let&apos;s begin.</span>
           </div>
-          <div ref={anchorRef} className="lws-auth-anchor" aria-hidden />
         </div>
 
-        <div className="lws-surface-raised lws-auth-card">
+        {/* Form card */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm w-full p-8">
           <div className="mb-8 text-center">
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold text-2xl border border-amber-500/20 mx-auto mb-3">
               ∞
@@ -72,41 +66,47 @@ export default function AuthScreen() {
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            <div className="lws-field">
+            <div>
+              <label htmlFor="login-email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Email
+              </label>
               <input
                 id="login-email"
                 type="email"
                 autoComplete="email"
                 required
                 autoFocus
-                placeholder=" "
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
                   if (error) clearError();
                 }}
+                placeholder="you@example.com"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
               />
-              <label htmlFor="login-email">Email</label>
             </div>
 
-            <div className="lws-field">
+            <div>
+              <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Password
+              </label>
               <input
                 id="login-password"
                 type="password"
                 autoComplete="current-password"
                 required
-                placeholder=" "
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
                   if (error) clearError();
                 }}
+                placeholder="••••••••"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
               />
-              <label htmlFor="login-password">Password</label>
             </div>
 
             {error && (
-              <p role="alert" className="lws-auth-error">
+              <p role="alert" className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
                 {error}
               </p>
             )}
@@ -114,15 +114,9 @@ export default function AuthScreen() {
             <button
               type="submit"
               disabled={busy}
-              className="lws-cta lws-lift w-full flex items-center justify-center gap-2 disabled:opacity-60"
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold py-2.5 rounded-xl shadow-sm hover:opacity-95 transition-all disabled:opacity-60"
             >
-              {busy && (
-                <span
-                  className="lws-voice-spinner"
-                  aria-hidden
-                  style={{ width: 16, height: 16 }}
-                />
-              )}
+              {busy && <span className="lws-voice-spinner" aria-hidden style={{ width: 16, height: 16 }} />}
               {busy ? 'Signing in…' : 'Sign In'}
             </button>
           </form>

@@ -24,18 +24,9 @@ const ThinkingIndicator = () => (
   <div className="flex items-start gap-3 my-3">
     <SashaAvatar />
     <div className="bg-slate-50 border border-slate-200/70 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
-      <span
-        className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"
-        style={{ animationDelay: '0ms' }}
-      />
-      <span
-        className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"
-        style={{ animationDelay: '150ms' }}
-      />
-      <span
-        className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"
-        style={{ animationDelay: '300ms' }}
-      />
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '300ms' }} />
     </div>
   </div>
 );
@@ -50,7 +41,7 @@ const ChatMessage = ({ message, onSimplify, onSpeak }: ChatMessageProps) => {
   const isUser = message.role === Role.USER;
   if (isUser) {
     return (
-      <div className="lws-message-in flex justify-end">
+      <div className="flex justify-end">
         <div className="bg-amber-500 text-white font-medium px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[85%] shadow-sm text-sm">
           {message.text}
         </div>
@@ -58,7 +49,7 @@ const ChatMessage = ({ message, onSimplify, onSpeak }: ChatMessageProps) => {
     );
   }
   return (
-    <div className="lws-message-in flex items-start gap-3">
+    <div className="flex items-start gap-3">
       <SashaAvatar />
       <div className="bg-slate-50 border border-slate-200/70 p-4 rounded-2xl rounded-tl-sm max-w-[90%] text-slate-800 space-y-2 leading-relaxed text-sm">
         <div className="lws-markdown">

@@ -97,9 +97,7 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
             .map(
               (q, i) =>
                 `${i + 1}. ${q.question}\n` +
-                q.options
-                  .map((o, j) => `   - ${String.fromCharCode(65 + j)}. ${o}`)
-                  .join('\n'),
+                q.options.map((o, j) => `   - ${String.fromCharCode(65 + j)}. ${o}`).join('\n'),
             )
             .join('\n')}`,
         );
@@ -125,16 +123,12 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
             <BookOpenIcon width={20} height={20} />
           </span>
           <p className="text-xs text-slate-500">
-            Pick a topic and Sasha will craft a personalized lesson tied to your
-            interests.
+            Pick a topic and Sasha will craft a personalized lesson tied to your interests.
           </p>
         </div>
 
         <div>
-          <label
-            htmlFor="lesson-topic"
-            className="block text-sm font-semibold text-slate-700 mb-1.5"
-          >
+          <label htmlFor="lesson-topic" className="block text-sm font-semibold text-slate-700 mb-1.5">
             What would you like to learn?
           </label>
           <input
@@ -149,10 +143,7 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
         </div>
 
         <div>
-          <label
-            htmlFor="lesson-interests"
-            className="block text-sm font-semibold text-slate-700 mb-1.5"
-          >
+          <label htmlFor="lesson-interests" className="block text-sm font-semibold text-slate-700 mb-1.5">
             Your interests
           </label>
           <input
@@ -165,10 +156,7 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
         </div>
 
         <div>
-          <label
-            htmlFor="lesson-language"
-            className="block text-sm font-semibold text-slate-700 mb-1.5"
-          >
+          <label htmlFor="lesson-language" className="block text-sm font-semibold text-slate-700 mb-1.5">
             Language
           </label>
           <select
@@ -183,10 +171,7 @@ export default function LessonModal({ isOpen, onClose, onLesson }: LessonModalPr
         </div>
 
         {error && (
-          <p
-            role="alert"
-            className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
-          >
+          <p role="alert" className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
             {error}
           </p>
         )}

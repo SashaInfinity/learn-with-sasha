@@ -1122,65 +1122,6 @@ body {
   animation: lwsRise var(--lws-dur-base) var(--lws-ease) forwards;
 }
 
-/* --- rocket entrance overlay -------------------------------------------- */
-.lws-rocket-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  overflow: hidden;
-}
-.lws-rocket {
-  position: absolute;
-  left: 50%;
-  margin-left: -23px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  will-change: transform, opacity, bottom;
-}
-.lws-rocket-flame {
-  display: block;
-  width: 14px;
-  height: 30px;
-  margin-top: -4px;
-  border-radius: 0 0 50% 50%;
-  background: linear-gradient(180deg, var(--lws-orange), var(--lws-amber-light));
-  filter: blur(2px);
-  animation: lwsFlame 0.14s ease-in-out infinite alternate;
-}
-@keyframes lwsFlame {
-  from {
-    transform: scaleY(0.75);
-    opacity: 0.85;
-  }
-  to {
-    transform: scaleY(1.25);
-    opacity: 1;
-  }
-}
-.lws-rocket-ring {
-  position: absolute;
-  top: -3px;
-  left: -3px;
-}
-.lws-rocket-flare {
-  position: absolute;
-  left: 50%;
-  top: 38%;
-  width: 220px;
-  height: 220px;
-  margin: -110px 0 0 -110px;
-  border-radius: 9999px;
-  background: radial-gradient(
-    circle,
-    #fff7e0 0%,
-    var(--lws-amber-light) 45%,
-    transparent 70%
-  );
-  will-change: transform, opacity;
-}
-
 /* --- static fallback when WebGL or the model is unavailable -------------- */
 .lws-sasha-fallback {
   position: fixed;
@@ -1191,12 +1132,6 @@ body {
   justify-content: center;
   pointer-events: none;
   opacity: 0.9;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lws-rocket-layer {
-    display: none;
-  }
 }
 
 /* --- markdown (rendered by src/lib/markdown.tsx) ------------------------ */

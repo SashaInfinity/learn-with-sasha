@@ -69,7 +69,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
     setMood('wave');
     const t = setTimeout(() => {
       if (!muted) speak("Hi! I'm Sasha. Let's learn together.");
-    }, 1400); // after the rocket burst, not during it
+    }, 1400); // after the entrance reveal settles
     const t2 = setTimeout(() => setMood('idle'), 4600);
     return () => {
       clearTimeout(t);

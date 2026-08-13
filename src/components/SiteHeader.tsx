@@ -61,7 +61,11 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}
           >
-            {menuOpen ? <XIcon width={22} height={22} /> : <MenuIcon width={22} height={22} />}
+            {menuOpen ? (
+              <XIcon width={22} height={22} />
+            ) : (
+              <MenuIcon width={22} height={22} />
+            )}
           </button>
         )}
       </div>

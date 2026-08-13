@@ -70,7 +70,7 @@ function toMessage(entry: ChatHistoryEntry): Message {
 
 export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
   const { user } = useAuth();
-  const { setMood } = useVoice();
+  const { setMood, mood } = useVoice();
   const { toast } = useToast();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
@@ -284,18 +284,24 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
     >
       {/* ============ LEFT: Mascot / Tutor Status Card (lg: 4 cols) ======== */}
       <section className="lg:col-span-4 flex flex-col gap-4 lws-mascot-section">
-        <div className="lws-mascot-card bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col items-center relative">
-          <div className="lws-mascot-glow" />
+        <div className="lws-mascot-card lws-surface flex flex-col items-center relative p-6">
+          {/* Mood-reactive glow: brighter on celebrate, dim on thinking. */}
+          <div
+            className="lws-mascot-glow"
+            style={{
+              opacity: mood === 'celebrate' ? 0.9 : mood === 'thinking' ? 0.25 : 0.6,
+            }}
+          />
 
           {/* Speech-bubble greeting */}
-          <div className="lws-bubble w-full p-4 shadow-sm">
+          <div className="lws-bubble w-full">
             <div className="flex items-start gap-3">
               <span className="text-amber-500 text-lg">✨</span>
               <div>
-                <p className="text-xs font-semibold text-amber-800 uppercase tracking-wider mb-0.5">
+                <p className="text-[11px] font-bold text-amber-800 uppercase tracking-wider mb-0.5">
                   Welcome back
                 </p>
-                <h2 className="text-sm font-semibold text-slate-800">
+                <h2 className="text-sm font-semibold text-slate-800 leading-snug">
                   Hi {user?.display_name ?? 'there'}! What shall we learn today?
                 </h2>
               </div>
@@ -305,8 +311,8 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
           {/* The 3D character projects into #sasha-dock here. */}
           <div className="lws-dock-wrap flex flex-col items-center">
             <div ref={dockRef} id={SASHA_DOCK_ID} className="lws-dock" />
-            <span className="mt-4 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="lws-active-pill mt-4">
+              <span className="lws-active-dot" />
               Sasha is active
             </span>
           </div>
@@ -314,7 +320,9 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
           {/* Tutor details */}
           <div className="text-center w-full pt-4 border-t border-slate-100">
             <h3 className="font-bold text-slate-800">Sasha</h3>
-            <p className="text-xs text-slate-500">Your Interactive AI Math Tutor</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Your Interactive AI Math Tutor
+            </p>
           </div>
         </div>
       </section>
@@ -339,8 +347,8 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
           </button>
         </div>
 
-        {/* Sessions history (md: 4 cols, fixed height) */}
-        <aside className="hidden md:flex md:col-span-4 bg-white rounded-xl border border-slate-200/60 p-3 flex-col h-[650px]">
+        {/* Sessions history (md: 4 cols) */}
+        <aside className="hidden md:flex md:col-span-4 lws-chat-surface p-3 flex-col lws-chat-fill">
           <Sidebar
             sessions={sessions}
             activeId={activeId}
@@ -351,8 +359,8 @@ export default function ChatHome({ lessonTrigger }: { lessonTrigger: number }) {
           />
         </aside>
 
-        {/* Active chat (md: 8 cols, fixed height) */}
-        <div className="md:col-span-8 h-[650px]">
+        {/* Active chat (md: 8 cols) */}
+        <div className="md:col-span-8 lws-chat-fill">
           <ChatPanel
             messages={messages}
             isThinking={thinking}

@@ -6,6 +6,9 @@
  * input row with an amber send button.
  *
  * Session lifecycle lives in the parent (ChatHome); this is a controlled view.
+ * Surfaces consume the shared --lws-* tokens via .lws-chat-surface /
+ * .lws-bubble-user / .lws-bubble-sasha so the dashboard stays visually in sync
+ * with the landing page.
  */
 import { useEffect, useRef, useState } from 'react';
 import { Role, type Message } from '../types';
@@ -15,15 +18,15 @@ import VoiceControlPanel from './VoiceControlPanel';
 import { Markdown } from '../lib/markdown';
 
 const SashaAvatar = () => (
-  <div className="w-8 h-8 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0 mt-1">
+  <span className="lws-avatar-sm lws-message-avatar" aria-hidden>
     <SparklesIcon width={16} height={16} />
-  </div>
+  </span>
 );
 
 const ThinkingIndicator = () => (
-  <div className="flex items-start gap-3 my-3">
+  <div className="lws-message-in flex items-start gap-3">
     <SashaAvatar />
-    <div className="bg-slate-50 border border-slate-200/70 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
+    <div className="lws-bubble-sasha lws-thinking flex items-center gap-1.5">
       <span
         className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"
         style={{ animationDelay: '0ms' }}
@@ -51,35 +54,35 @@ const ChatMessage = ({ message, onSimplify, onSpeak }: ChatMessageProps) => {
   if (isUser) {
     return (
       <div className="lws-message-in flex justify-end">
-        <div className="bg-amber-500 text-white font-medium px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[85%] shadow-sm text-sm">
-          {message.text}
-        </div>
+        <div className="lws-bubble-user text-sm">{message.text}</div>
       </div>
     );
   }
   return (
     <div className="lws-message-in flex items-start gap-3">
       <SashaAvatar />
-      <div className="bg-slate-50 border border-slate-200/70 p-4 rounded-2xl rounded-tl-sm max-w-[90%] text-slate-800 space-y-2 leading-relaxed text-sm">
+      <div className="lws-bubble-sasha text-slate-800 space-y-2 leading-relaxed text-sm">
         <div className="lws-markdown">
           <Markdown content={message.text} />
         </div>
         {message.finalAnswer && (
-          <div className="bg-amber-100/60 border-l-4 border-amber-500 p-2.5 rounded-r-md text-center font-bold text-amber-950 text-sm">
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-md text-center font-bold text-amber-950 text-sm">
             {message.finalAnswer}
           </div>
         )}
         {/* Action bar */}
-        <div className="flex items-center gap-4 pt-2 text-xs text-slate-400 border-t border-slate-200/50">
+        <div className="flex items-center gap-1 pt-2 text-xs border-t border-slate-100">
           <button
             onClick={() => onSpeak(message.text)}
-            className="hover:text-amber-600 flex items-center gap-1 font-medium"
+            className="lws-icon-btn"
+            title="Read this answer aloud"
           >
             <SpeakerIcon width={13} height={13} /> Speak
           </button>
           <button
             onClick={() => onSimplify(message.text)}
-            className="hover:text-amber-600 flex items-center gap-1 font-medium"
+            className="lws-icon-btn"
+            title="Simplify this explanation"
           >
             <MagicWandIcon width={13} height={13} /> Simplify
           </button>
@@ -146,14 +149,16 @@ export default function ChatPanel({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/60 flex flex-col h-full shadow-sm overflow-hidden">
+    <div className="lws-chat-surface flex flex-col h-full overflow-hidden">
       {/* Chat header */}
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+      <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/40">
         <div className="flex items-center gap-2 min-w-0">
           <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full shrink-0" />
-          <span className="text-xs font-bold text-slate-700 truncate">{title}</span>
+          <span className="text-sm font-semibold text-slate-700 truncate">{title}</span>
         </div>
-        <VoiceControlPanel />
+        <div className="shrink-0">
+          <VoiceControlPanel />
+        </div>
       </div>
 
       {/* Messages */}
@@ -165,7 +170,10 @@ export default function ChatPanel({
       >
         {messages.length === 0 && !isThinking && (
           <div className="h-full flex flex-col items-center justify-center text-center px-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 mb-3">
+            <div
+              className="lws-avatar-sm mb-3"
+              style={{ width: 48, height: 48, borderRadius: 14 }}
+            >
               <SparklesIcon width={22} height={22} />
             </div>
             <p className="text-sm text-slate-500 mb-4 max-w-xs">

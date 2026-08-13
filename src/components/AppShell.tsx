@@ -16,7 +16,7 @@ import ChatHome from './ChatHome';
 import SashaStage, { type StageMode } from './SashaStage';
 import SiteHeader from './SiteHeader';
 import Spinner from './Spinner';
-import { PlusIcon } from './IconComponents';
+import { PlusIcon, SparklesIcon } from './IconComponents';
 
 /** Build initials (e.g. "Sharveshwar R" -> "SR") for the avatar circle. */
 function initials(name: string): string {
@@ -81,9 +81,9 @@ export default function AppShell() {
     );
   }
 
-  // Authenticated dashboard. Navbar matches the design: logo + wordmark +
-  // "AI Tutor" chip on the left; gradient Generate-Lesson CTA + avatar +
-  // name + sign-out on the right.
+  // Authenticated dashboard. Navbar: sparkles brand mark + wordmark + chip on
+  // the left; Generate-Lesson CTA + avatar + name + sign-out on the right.
+  // Uses the same brand-mark treatment as the marketing SiteHeader.
   return (
     <div className="min-h-screen">
       {stage}
@@ -96,24 +96,27 @@ export default function AppShell() {
             onClick={() => setShowLanding(true)}
             aria-label="Learn With Sasha — home"
           >
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold text-xl border border-amber-500/20">
-              ∞
-            </div>
-            <div className="flex items-center">
+            <span
+              className="lws-brand-mark"
+              aria-hidden
+              style={{ width: 40, height: 40 }}
+            >
+              <SparklesIcon width={20} height={20} />
+            </span>
+            <span className="flex items-center">
               <span className="font-bold text-lg text-slate-900 tracking-tight">
                 Learn With <span className="text-amber-600">Sasha</span>
               </span>
-              <span className="hidden sm:inline-block text-xs bg-amber-100 text-amber-700 font-medium px-2 py-0.5 rounded-full ml-2">
-                AI Tutor
-              </span>
-            </div>
+              <span className="lws-chip hidden sm:inline-block">AI Tutor</span>
+            </span>
           </button>
 
           {/* Right cluster */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setLessonTrigger((n) => n + 1)}
-              className="hidden md:flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium px-4 py-2 rounded-xl shadow-sm hover:opacity-95 transition-all text-sm"
+              className="lws-cta lws-lift hidden md:inline-flex"
+              style={{ padding: '8px var(--lws-space-4)', fontSize: 14 }}
             >
               <PlusIcon width={16} height={16} />
               <span>Generate Lesson</span>
@@ -122,15 +125,15 @@ export default function AppShell() {
             <div className="hidden md:block h-6 w-px bg-slate-200" />
 
             <div className="flex items-center gap-3 pl-1">
-              <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-600 font-semibold flex items-center justify-center text-sm border border-slate-300">
+              <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 font-semibold flex items-center justify-center text-sm border border-slate-200">
                 {initials(user.display_name || user.username || user.email)}
               </div>
-              <span className="hidden sm:inline text-sm font-semibold text-slate-700">
+              <span className="hidden lg:inline text-sm font-semibold text-slate-700">
                 {user.display_name}
               </span>
               <button
                 onClick={() => void logout()}
-                className="text-xs text-slate-500 hover:text-slate-800 font-medium bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
+                className="text-xs text-slate-500 hover:text-slate-800 font-medium hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors"
               >
                 Sign out
               </button>

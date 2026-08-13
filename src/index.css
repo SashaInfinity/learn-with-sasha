@@ -274,6 +274,36 @@ body {
   outline: 2px solid var(--lws-amber);
   outline-offset: 1px;
 }
+/* Mute toggle: a labeled pill that matches the transport buttons' aesthetic. */
+.lws-voice-mute {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  padding: 5px var(--lws-space-2);
+  border-radius: var(--lws-radius-sm);
+  cursor: pointer;
+  transition:
+    color var(--lws-dur-fast) var(--lws-ease),
+    border-color var(--lws-dur-fast) var(--lws-ease),
+    background var(--lws-dur-fast) var(--lws-ease);
+}
+.lws-voice-mute:hover {
+  color: var(--lws-amber-dark);
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+.lws-voice-mute:focus-visible {
+  outline: 2px solid var(--lws-amber);
+  outline-offset: 1px;
+}
+.lws-voice-mute[aria-pressed='true'] {
+  color: var(--lws-amber-dark);
+}
 
 .lws-voice-slider {
   display: inline-flex;
@@ -1120,6 +1150,147 @@ body {
 }
 .lws-message-in {
   animation: lwsRise var(--lws-dur-base) var(--lws-ease) forwards;
+}
+
+/* --- conversation surfaces (token-driven, consumed by ChatPanel) --------- */
+.lws-chat-surface {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--lws-radius-lg);
+  box-shadow: var(--lws-shadow-1);
+}
+/* User bubble: amber gradient, right-aligned by the caller. */
+.lws-bubble-user {
+  background: linear-gradient(135deg, var(--lws-amber), var(--lws-orange));
+  color: #fff;
+  font-weight: 500;
+  padding: 10px var(--lws-space-4);
+  border-radius: var(--lws-radius-lg);
+  border-top-right-radius: var(--lws-radius-sm);
+  box-shadow: var(--lws-shadow-1);
+  max-width: 85%;
+}
+/* Sasha bubble: clean white surface with a soft border + shadow. */
+.lws-bubble-sasha {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  padding: var(--lws-space-4);
+  border-radius: var(--lws-radius-lg);
+  border-top-left-radius: var(--lws-radius-sm);
+  box-shadow: var(--lws-shadow-1);
+  max-width: 90%;
+}
+
+/* The Sasha avatar tile (chat header + message rows). */
+.lws-avatar-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--lws-radius-md);
+  background: var(--lws-amber-light);
+  border: 1px solid #fde68a;
+  color: var(--lws-amber-dark);
+  flex-shrink: 0;
+}
+/* Avatar in a message row gets a subtle ring + top margin to align with the
+   first line of the bubble. */
+.lws-message-avatar {
+  margin-top: 2px;
+}
+/* The thinking bubble is a compact Sasha bubble with no padding. */
+.lws-thinking {
+  padding: 12px var(--lws-space-4);
+  align-self: flex-start;
+}
+
+/* Small icon-only button (Speak / Simplify / delete) with lift + focus ring. */
+.lws-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lws-space-1);
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: var(--lws-space-1) var(--lws-space-2);
+  border-radius: var(--lws-radius-sm);
+  transition:
+    color var(--lws-dur-fast) var(--lws-ease),
+    background-color var(--lws-dur-fast) var(--lws-ease);
+}
+.lws-icon-btn:hover {
+  color: var(--lws-amber-dark);
+  background: var(--lws-amber-light);
+}
+.lws-icon-btn:focus-visible {
+  outline: 2px solid var(--lws-amber);
+  outline-offset: 1px;
+}
+
+/* Skeleton placeholder row (replaces inline-style sizing in Sidebar). */
+.lws-skeleton-row {
+  display: block;
+  height: 10px;
+  border-radius: var(--lws-radius-sm);
+}
+.lws-skeleton-row + .lws-skeleton-row {
+  height: 8px;
+  margin-top: var(--lws-space-2);
+}
+
+/* Session list date section label. */
+.lws-session-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  padding: var(--lws-space-3) var(--lws-space-2) var(--lws-space-1);
+}
+.lws-session-group-label:first-child {
+  padding-top: 0;
+}
+
+/* "Sasha is active" status pill. */
+.lws-active-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: var(--lws-space-1) var(--lws-space-3);
+  border-radius: 999px;
+}
+.lws-active-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--lws-success);
+  animation: lwsPulse 2s ease-in-out infinite;
+}
+@keyframes lwsPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Conversation height: fill the viewport below the fixed header instead of
+   a hardcoded 650px. min-height keeps it usable on short screens. */
+.lws-chat-fill {
+  height: calc(100vh - var(--lws-header-h) - 120px);
+  min-height: 420px;
 }
 
 /* --- static fallback when WebGL or the model is unavailable -------------- */

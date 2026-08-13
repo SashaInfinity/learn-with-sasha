@@ -40,7 +40,7 @@ export default function VoiceControlPanel() {
       <button
         type="button"
         onClick={() => setMuted(!muted)}
-        className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 bg-white border border-slate-200 px-2.5 py-1 rounded-md"
+        className="lws-voice-mute"
         aria-pressed={!muted}
         title={muted ? 'Voice is off' : 'Voice is on'}
       >
